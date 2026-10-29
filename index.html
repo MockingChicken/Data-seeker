@@ -1,0 +1,2098 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Data Seeker</title>
+<link rel="icon" type="image/svg+xml" id="favicon" href="">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;500;600&display=swap">
+<style>
+/* Roberts Lab app house style v1.1 — see APP_HOUSE_STYLE.md. Accent family: Teal. */
+:root{
+  --bg:#f3f5fa; --surface:#ffffff; --sunk:#eaeef6; --line:#d6dce8; --line-strong:#b1bbcf;
+  --fg:#151a27; --muted:#5a6377;
+  --accent:#13798A; --accent-ink:#ffffff; --accent-soft:#DBF0F3;
+  --amber:#b8720f; --good:#1b7f45; --bad:#c2352b; --focus:#f2a93b;
+  --plate:#ffffff; --plate-edge:#d3d9e6;
+  --f-ui:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --f-brand:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;
+  --f-fig:Arial,Helvetica,"Liberation Sans",sans-serif;
+  --brand-ink:#172033; --brand-sub:#4E586B;
+  --r:6px; --hdr:104px;
+  /* app-specific, derived from the fixed tokens so both themes follow */
+  --tierA:var(--good); --tierB:var(--amber); --tierC:var(--bad);
+  --tierA-bg:color-mix(in srgb,var(--good) 14%,var(--surface));
+  --tierB-bg:color-mix(in srgb,var(--amber) 16%,var(--surface));
+  --tierC-bg:color-mix(in srgb,var(--bad) 13%,var(--surface));
+  --bad-bg:color-mix(in srgb,var(--bad) 12%,var(--surface));
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e121b; --surface:#151b28; --sunk:#1b2333; --line:#29334a; --line-strong:#3c4964;
+  --fg:#e4e8f3; --muted:#95a0b8;
+  --accent:#5CC8D6; --accent-ink:#05232A; --accent-soft:#16343A;
+  --amber:#f0b35a; --good:#5fcf8c; --bad:#ff7d6f; --focus:#f2a93b;
+  --plate:#ffffff; --plate-edge:#29334a;
+  --brand-ink:#F3F1EC; --brand-sub:#C3CBDA;
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#0e121b; --surface:#151b28; --sunk:#1b2333; --line:#29334a; --line-strong:#3c4964;
+  --fg:#e4e8f3; --muted:#95a0b8;
+  --accent:#5CC8D6; --accent-ink:#05232A; --accent-soft:#16343A;
+  --amber:#f0b35a; --good:#5fcf8c; --bad:#ff7d6f; --focus:#f2a93b;
+  --plate:#ffffff; --plate-edge:#29334a;
+  --brand-ink:#F3F1EC; --brand-sub:#C3CBDA;
+  color-scheme:dark }
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--f-ui);font-size:15px;line-height:1.5}
+a{color:var(--accent)}
+.wrap{max-width:1280px;margin:0 auto;padding-inline:20px}
+@media (max-width:520px){.wrap{padding-inline:14px}}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+:fullscreen{background:var(--bg);overflow:auto}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--surface);border-bottom:1px solid var(--line)}
+.brand-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-block:12px 4px}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+.brand h1{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:0}
+.brandbtn{appearance:none;border:0;background:none;padding:0;margin:0;cursor:pointer;border-radius:8px;display:inline-flex;line-height:0}
+.brandbtn svg{width:34px;height:34px;display:block;transition:transform .12s}
+.brandbtn:hover svg{transform:scale(1.06)}
+.ws{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ws .src{font-family:var(--f-mono);font-size:12px;color:var(--muted);max-width:30ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media (max-width:640px){.ws .src{display:none}}
+nav.tabs{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{appearance:none;border:0;background:none;color:var(--muted);font:inherit;font-weight:500;padding:10px 13px 11px;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;display:flex;gap:7px;align-items:baseline}
+nav.tabs button .n{font-family:var(--f-mono);font-size:11.5px;opacity:.7}
+nav.tabs button[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+nav.tabs button:hover{color:var(--fg)}
+
+/* layout */
+main{padding-block:22px 64px}
+section.panel{display:grid;gap:18px;min-width:0}
+section.panel>*{min-width:0}
+h2{font-size:19px;margin:0;font-weight:650;text-wrap:balance}
+h3{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:0 0 10px;font-weight:600}
+p{margin:0}
+.stack>h3,.lab>h3{margin:0}
+.lede{color:var(--muted);max-width:70ch}
+.hint{font-size:12.5px;color:var(--muted)}
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stack{display:grid;gap:14px}
+.mono,code{font-family:var(--f-mono);font-size:.9em;font-variant-numeric:tabular-nums}
+.empty{padding:36px 20px;text-align:center;color:var(--muted);font-size:13.5px;border:1px dashed var(--line-strong);border-radius:var(--r)}
+.msg{font-size:13px;padding:8px 11px;border-radius:5px;background:var(--sunk);border-left:3px solid var(--line-strong)}
+.msg.ok{border-left-color:var(--good)} .msg.warn{border-left-color:var(--amber)} .msg.err{border-left-color:var(--bad)} .msg.info{border-left-color:var(--accent)}
+
+/* controls */
+label{display:block;font-size:13px;font-weight:500;margin-bottom:4px}
+input[type=text],input[type=number],input[type=search],select,textarea{width:100%;font:inherit;font-size:14px;color:var(--fg);background:var(--surface);border:1px solid var(--line-strong);border-radius:5px;padding:7px 9px}
+.btn{appearance:none;font:inherit;font-size:14px;font-weight:500;border-radius:5px;padding:7px 13px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);cursor:pointer;display:inline-flex;gap:6px;align-items:center;line-height:1.3;text-decoration:none}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.small{font-size:12.5px;padding:4px 9px}
+.btn.danger{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.iconbtn{width:30px;height:30px;padding:0;border-radius:50%;justify-content:center;font-weight:700;font-size:15px;line-height:1}
+.chk{display:flex;gap:8px;align-items:center;font-weight:400;font-size:14px;margin:0;cursor:pointer}
+.chk input{width:16px;height:16px;accent-color:var(--accent);margin:0}
+
+/* modal, toast, drop */
+.modal-bg{position:fixed;inset:0;z-index:40;background:rgba(10,15,30,.5);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto}
+.modal{background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:10px;max-width:640px;width:100%;max-height:calc(100vh - 80px);overflow:auto;padding:22px;box-shadow:0 12px 40px rgba(10,20,50,.3);display:grid;gap:12px}
+.modal.small{max-width:440px}
+.modal h3{margin:8px 0 0}
+.help-dl,.about dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 18px;margin:0}
+.help-dl dt{font-weight:600} .help-dl dd{margin:0;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:9px 16px;border-radius:6px;font-size:14px;z-index:60;max-width:calc(100% - 32px)}
+.drop{position:fixed;inset:0;z-index:50;background:color-mix(in srgb,var(--accent) 14%,transparent);border:3px dashed var(--accent);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:var(--accent);pointer-events:none}
+
+/* about */
+.about{max-width:820px}
+.about dt{color:var(--muted);font-size:13px}
+.about dd{margin:0}
+.about ul{margin:0;padding-left:20px;display:grid;gap:4px}
+.lab{display:grid;gap:10px}
+.lab-lockup{width:100%;max-width:440px;height:auto;display:block}
+
+/* ===== Data Seeker: search tab ===== */
+.qgrid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1.3fr) minmax(0,1fr) minmax(0,1fr) auto;gap:12px;align-items:end}
+.qgrid input,.qgrid select{height:40px}
+#goBtn{height:40px;padding:0 26px;font-weight:600;justify-content:center}
+@media (max-width:860px){.qgrid{grid-template-columns:1fr 1fr}.qgrid>div:first-child{grid-column:1/-1}#goBtn{width:100%}}
+@media (max-width:520px){.qgrid .gocell{grid-column:1/-1}}
+@media (max-width:520px){.qgrid{grid-template-columns:1fr}}
+#q{font-size:16px;font-weight:500}
+.srcrow{display:flex;gap:8px 18px;flex-wrap:wrap;align-items:center}
+.srcrow .chk{font-size:13.5px}
+.aliases{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:13px}
+.alias{font-family:var(--f-mono);font-size:12px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);border-radius:999px;padding:3px 10px;cursor:pointer}
+.alias[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.alias[aria-pressed="false"]{text-decoration:line-through;color:var(--muted)}
+details.adv summary{cursor:pointer;color:var(--muted);font-size:13px}
+.advgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;padding-top:10px}
+.seg{display:inline-flex;border:1px solid var(--line-strong);border-radius:5px;overflow:hidden;background:var(--surface)}
+.seg button{appearance:none;border:0;background:none;font:inherit;color:inherit;padding:5px 11px;cursor:pointer;font-weight:500;font-size:13px;border-right:1px solid var(--line-strong)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:650}
+details.wsbox>summary{cursor:pointer;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;list-style:none}
+details.wsbox>summary::-webkit-details-marker{display:none}
+details.wsbox>summary::before{content:"▸";color:var(--muted);font-size:12px}
+details.wsbox[open]>summary::before{content:"▾"}
+details.wsbox>summary h3{margin:0}
+.recent{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.recent li{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border:1px solid var(--line);border-radius:5px;padding:7px 10px;font-size:13.5px}
+.recent li.current{border-color:var(--accent);background:var(--accent-soft)}
+.recent .rname{font-weight:500;overflow-wrap:anywhere}
+.recent .rmeta{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+/* ===== results tab ===== */
+.status{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px}
+.status:empty{display:none}
+#status,#results{scroll-margin-top:calc(var(--hdr) + 12px)}
+.srcst{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:5px;padding:3px 9px;background:var(--surface)}
+.srcst b{font-variant-numeric:tabular-nums;font-weight:600}
+.srcst.err{background:var(--bad-bg);border-color:transparent;color:var(--bad)}
+.srcst .dot{width:7px;height:7px;border-radius:50%;background:var(--muted)}
+.srcst.ok .dot{background:var(--good)}
+.srcst.busy .dot{background:var(--amber);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.3}}
+.rgrid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:24px;align-items:start}
+aside.rail{display:grid;gap:18px;align-content:start;position:sticky;top:calc(var(--hdr) + 12px);max-height:calc(100vh - var(--hdr) - 24px);overflow:auto;padding-right:4px}
+.facet h3{margin:0 0 8px;display:flex;justify-content:space-between;align-items:baseline}
+.facet h3 button{border:0;background:none;color:var(--accent);font:inherit;font-size:11px;cursor:pointer;text-transform:none;letter-spacing:0}
+.opt{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13.5px;font-weight:400;padding:2px 0;margin:0;cursor:pointer}
+.opt input{accent-color:var(--accent);margin:0}
+.opt span.n{color:var(--muted);font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:11.5px}
+.opt.zero{opacity:.45}
+.opt .lbl{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.more{border:0;background:none;color:var(--accent);cursor:pointer;font:inherit;font-size:12.5px;padding:4px 0}
+.yr{display:flex;gap:6px;align-items:center}
+.yr input{width:84px;font-variant-numeric:tabular-nums}
+.legend{font-size:12.5px;color:var(--muted);display:grid;gap:4px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:14px}
+.toolbar .l,.toolbar .r{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.toolbar input[type=search]{width:220px;max-width:100%;padding:4px 9px;font-size:13px}
+.toolbar select{width:auto;padding:4px 6px;font-size:12.5px}
+.count{font-weight:650;font-size:15px}
+.count small{font-weight:400;font-size:13px;color:var(--muted)}
+.tierbar{display:flex;height:8px;border-radius:4px;overflow:hidden;width:180px;background:var(--sunk)}
+.tierbar i{display:block}
+.group{margin-bottom:24px}
+.group>h2{font-size:17px;margin:0 0 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.group>h2 small{font-weight:400;font-size:13px;color:var(--muted)}
+.list{display:grid;gap:10px}
+.rcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px}
+.rcard .top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px}
+.acc{font-family:var(--f-mono);font-weight:500;font-size:13px;text-decoration:none}
+.acc:hover{text-decoration:underline}
+.badge{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:2px 6px;background:var(--sunk);color:var(--muted)}
+.rcard h3.title{font-weight:600;font-size:15px;line-height:1.35;margin:2px 0 0;grid-column:1;text-transform:none;letter-spacing:0;color:var(--fg)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;grid-column:1}
+.chip{font-size:12px;border-radius:999px;padding:2px 9px;background:var(--sunk);white-space:nowrap}
+.chip.sp{background:var(--accent-soft)}
+.chip.cell{border:1px solid var(--line);background:transparent}
+.chip.f-dedicated{background:var(--tierA-bg);color:var(--tierA)}
+.chip.f-partial{background:var(--tierB-bg);color:var(--tierB)}
+.chip.f-minor{background:var(--tierC-bg);color:var(--tierC)}
+.chip.f-indirect,.chip.f-unknown{background:var(--sunk);color:var(--muted)}
+.chip.cx-Simple,.chip.cx-Moderate,.chip.cx-Complex{border:1px dashed var(--line-strong);background:transparent;color:var(--muted)}
+.chip.cx-Complex{border-color:var(--tierC);color:var(--tierC)}
+.score{grid-column:2;grid-row:1/span 3;display:grid;justify-items:end;align-content:start;gap:6px}
+.tier{font-weight:700;font-size:13px;border-radius:5px;padding:3px 9px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tier.A{background:var(--tierA-bg);color:var(--tierA)}
+.tier.B{background:var(--tierB-bg);color:var(--tierB)}
+.tier.C{background:var(--tierC-bg);color:var(--tierC)}
+.meter{width:72px;height:5px;border-radius:3px;background:var(--sunk);overflow:hidden}
+.meter i{display:block;height:100%;background:currentColor}
+.star{border:0;background:none;cursor:pointer;font-size:20px;line-height:1;color:var(--muted);padding:2px}
+.star[aria-pressed="true"]{color:var(--amber)}
+.meta{grid-column:1/-1;display:flex;gap:6px 16px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.meta .planBtn{margin-left:auto}
+#btnSavedHdr[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.planBtn[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.rcard details{grid-column:1/-1;font-size:13.5px}
+.rcard summary{cursor:pointer;color:var(--accent);font-size:13px;width:max-content;max-width:100%}
+.detail{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;padding-top:10px}
+.detail p{margin:0 0 8px;max-width:72ch}
+.detail h4{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;font-weight:600}
+.why{list-style:none;padding:0;margin:0 0 12px;display:grid;gap:3px;font-size:13px}
+.why li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding-bottom:3px}
+.why li b{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-weight:500}
+.why li.neg b{color:var(--bad)}
+.samples{max-height:180px;overflow:auto;font-family:var(--f-mono);font-size:12px;background:var(--bg);border-radius:5px;padding:8px 10px;margin:0;list-style:none}
+.samples li{white-space:nowrap}
+.samples .role{display:inline-block;width:58px;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.samples .role.target{color:var(--tierA)}
+.samples.need{margin-bottom:10px}
+mark{background:var(--tierB-bg);color:inherit;border-radius:2px;padding:0 1px}
+.samples mark{background:var(--tierA-bg);color:var(--tierA)}
+.links{display:flex;gap:8px;flex-wrap:wrap}
+.links a{font-size:12.5px;border:1px solid var(--line);border-radius:5px;padding:3px 8px;text-decoration:none}
+.linkbtn{border:0;background:none;color:var(--accent);cursor:pointer;font:inherit;font-size:11px;text-transform:none;letter-spacing:0;padding:0}
+.factors{font-size:13px}
+details.all summary{font-size:12.5px;margin:4px 0}
+.portals{margin-top:28px;border-top:1px solid var(--line);padding-top:16px;display:grid;gap:8px}
+.portals h3{margin:0}
+.portals .links a{font-size:13px}
+.savedFrom{margin:6px 0 -4px;font-size:12px;color:var(--muted)}
+#filtersBtn{display:none}
+@media (max-width:980px){
+  #filtersBtn{display:inline-flex}
+  .rgrid{grid-template-columns:1fr}
+  aside.rail{display:none!important;position:static;max-height:none;grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  body.show-filters aside.rail{display:grid!important}
+}
+@media (max-width:560px){
+  .detail{grid-template-columns:1fr}
+  .rcard{grid-template-columns:1fr}
+  .score{grid-column:1;grid-row:auto;justify-items:start;grid-auto-flow:column;align-items:center}
+}
+
+/* ===== download list tab ===== */
+.types{display:flex;gap:6px 18px;flex-wrap:wrap}
+.types .chk{font-size:13.5px}
+#planBody{display:grid;gap:14px}
+.pbox{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px;display:grid;gap:10px}
+.pbox h3,.pdsWrap>h3{margin:0}
+.pbox p{font-size:13.5px;color:var(--muted);max-width:80ch}
+.pbtns{display:flex;gap:8px;flex-wrap:wrap}
+.pdsWrap{display:grid;gap:10px}
+.pds{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;display:grid;gap:6px}
+.pdsHead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12.5px}
+.pdsHead .rm{margin-left:auto}
+.pdsTitle{font-weight:600;font-size:14px;line-height:1.35}
+.prow{display:grid;grid-template-columns:auto 62px minmax(0,1fr);gap:4px 8px;align-items:start;font-size:13px;font-weight:400;padding:3px 0;margin:0;cursor:pointer}
+.prow input{accent-color:var(--accent);margin:2px 0 0}
+.prow .ptitle{overflow-wrap:anywhere}
+.prow .pfiles{grid-column:3;display:flex;gap:4px;flex-wrap:wrap}
+.fchip{font-family:var(--f-mono);font-size:11.5px;border-radius:4px;padding:1px 6px;background:var(--sunk);color:var(--muted);overflow-wrap:anywhere;text-decoration:none}
+.fchip.signal{background:var(--accent-soft);color:var(--fg)}
+.fchip.peaks{background:var(--tierB-bg);color:var(--tierB)}
+.fchip.raw{background:var(--tierC-bg);color:var(--tierC)}
+.fchip.off{opacity:.45;text-decoration:line-through}
+.role{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:2px}
+.role.target{color:var(--tierA)}
+.pwarn{font-size:12.5px;color:var(--amber)}
+.pnote{font-size:12.5px;color:var(--muted)}
+.pds details summary{font-size:12.5px;color:var(--accent);cursor:pointer}
+/* download list side panel (header button) */
+.scrim{position:fixed;inset:calc(var(--hdr) + env(safe-area-inset-top,0px)) 0 0 0;z-index:30;background:rgba(10,15,30,.35)}
+.drawer{position:fixed;top:calc(var(--hdr) + env(safe-area-inset-top,0px));right:0;bottom:0;z-index:31;width:min(720px,100%);background:var(--bg);border-left:1px solid var(--line);box-shadow:-12px 0 32px rgba(10,20,50,.18);overflow:auto;
+  padding:14px max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) 16px}
+.drawerHead{position:sticky;top:-14px;z-index:1;background:var(--bg);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-block:6px 12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+.drawerHead h2{margin:0}
+#savedDrawer .rcard{grid-template-columns:1fr}
+#savedDrawer .score{grid-column:1;grid-row:auto;justify-items:start;grid-auto-flow:column;align-items:center}
+#savedDrawer .detail{grid-template-columns:1fr}
+#savedList .empty{text-align:left}
+#btnListCount[aria-expanded="true"]{background:var(--accent-soft);border-color:var(--accent)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand-row">
+      <div class="brand">
+        <button class="brandbtn" id="btnFullscreen" type="button" title="Full screen" aria-label="Full screen"></button>
+        <h1>Data Seeker</h1>
+      </div>
+      <div class="ws">
+        <span class="src" id="srcChip"></span>
+        <button class="btn small" id="btnSavedHdr" type="button" aria-expanded="false" aria-controls="savedDrawer" title="Show your saved datasets in a side panel">Saved <b id="savedHdrN" class="mono">0</b></button>
+        <button class="btn small" id="btnListCount" type="button" aria-expanded="false" aria-controls="planDrawer" title="Show the download list in a side panel">Download list <b id="planN" class="mono">0</b></button>
+        <button class="btn small" id="btnReset" type="button">Reset</button>
+        <button class="btn small" id="btnSaveWs" type="button">Save workspace</button>
+        <button class="btn small" id="btnLoadWs" type="button">Load workspace</button>
+        <button class="btn small iconbtn" id="btnHelp" type="button" title="Help" aria-label="Help">?</button>
+        <input type="file" id="fileWs" accept=".json,application/json" hidden>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Sections">
+      <button role="tab" data-tab="search"><span class="n">1</span>Search</button>
+      <button role="tab" data-tab="list"><span class="n">2</span>Download list</button>
+      <button role="tab" data-tab="about"><span class="n">3</span>About</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section class="panel" id="tab-search" hidden>
+  <div class="head"><div><h2>Search</h2><p class="lede">Search GEO, ENCODE and ArrayExpress at once for public sequencing data on a gene, protein or topic. Results are scored for reliability; star the ones to keep and add them to the download list.</p></div>
+    <button class="btn primary" data-go="list" type="button">Continue to download list →</button></div>
+  <form class="card stack" id="searchForm" autocomplete="off">
+    <h3>Query</h3>
+    <div class="qgrid">
+      <div><label for="q">Gene, protein or topic</label><input type="text" id="q" placeholder="e.g. MyoD, H3K27ac, muscle regeneration" required></div>
+      <div><label for="assay">Data type</label>
+        <select id="assay">
+          <option value="chip" selected>ChIP-seq (TF / histone)</option>
+          <option value="cut">CUT&amp;RUN / CUT&amp;Tag</option>
+          <option value="rna">Bulk RNA-seq</option>
+          <option value="sc">Single-cell / single-nucleus RNA-seq</option>
+          <option value="atac">ATAC-seq</option>
+          <option value="hic">Hi-C / HiChIP / Micro-C</option>
+          <option value="any">Any sequencing data</option>
+        </select></div>
+      <div><label for="org">Species</label>
+        <select id="org">
+          <option value="">Any species</option>
+          <option>Homo sapiens</option><option>Mus musculus</option><option>Rattus norvegicus</option>
+          <option>Danio rerio</option><option>Gallus gallus</option><option>Sus scrofa</option>
+          <option>Bos taurus</option><option>Xenopus laevis</option><option>Drosophila melanogaster</option>
+        </select></div>
+      <div><label for="extra">Extra keywords</label><input type="text" id="extra" placeholder="e.g. myoblast"></div>
+      <div class="gocell"><button class="btn primary" id="goBtn" type="submit">Search</button></div>
+    </div>
+    <div class="srcrow">
+      <span class="hint">Sources</span>
+      <label class="chk"><input type="checkbox" id="srcGEO" checked> GEO (NCBI)</label>
+      <label class="chk"><input type="checkbox" id="srcENCODE" checked> ENCODE</label>
+      <label class="chk"><input type="checkbox" id="srcAE" checked> ArrayExpress (EBI)</label>
+      <label class="chk"><input type="checkbox" id="expand" checked> Expand gene aliases</label>
+    </div>
+    <div class="aliases" id="aliasRow" hidden></div>
+    <details class="adv">
+      <summary>Advanced</summary>
+      <div class="advgrid">
+        <div><label for="maxn">Most GEO series to fetch</label>
+          <select id="maxn"><option>100</option><option selected>300</option><option>500</option></select></div>
+        <div><label for="apikey">NCBI API key (optional, faster)</label>
+          <input type="text" id="apikey" placeholder="From your NCBI account settings" autocomplete="off"></div>
+      </div>
+    </details>
+  </form>
+  <div class="status" id="status"></div>
+  <div class="rgrid">
+    <aside class="rail" id="rail" aria-label="Filters"></aside>
+    <section id="results" aria-live="polite">
+      <div class="toolbar" id="toolbar" hidden>
+        <div class="l">
+          <span class="count" id="count"></span>
+          <span class="tierbar" id="tierbar" title="Share of Tier A / B / C"></span>
+        </div>
+        <div class="r">
+          <input type="search" id="within" placeholder="Filter within results" aria-label="Filter within results">
+          <select id="groupBy" aria-label="Group results">
+            <option value="tier">Group by reliability</option><option value="species">Group by species</option>
+            <option value="cell">Group by cell line / tissue</option><option value="assay">Group by assay</option>
+            <option value="source">Group by repository</option><option value="year">Group by year</option><option value="none">No grouping</option>
+          </select>
+          <select id="sortBy" aria-label="Sort results">
+            <option value="score">Sort by score</option><option value="date">Sort by newest</option><option value="n">Sort by most samples</option>
+          </select>
+          <button class="btn small" id="filtersBtn" type="button">Filters</button>
+          <button class="btn small" id="planShownBtn" type="button" title="Add every dataset in the current view to the download list">Add shown to download list</button>
+          <button class="btn small" id="copyBtn" type="button">Copy accessions</button>
+          <button class="btn small" id="csvBtn" type="button">Export CSV</button>
+        </div>
+      </div>
+      <div id="groups"></div>
+      <div class="portals" id="portals" hidden>
+        <h3>Check these portals too</h3>
+        <p class="hint">Curated resources that index reprocessed or single-cell data and have no open search interface. Links open with your query where the site supports it.</p>
+        <div class="links" id="portalLinks"></div>
+      </div>
+    </section>
+  </div>
+  <details class="card wsbox" id="wsBox">
+    <summary><h3>Project and workspaces</h3><span class="hint" id="wsSummary"></span></summary>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card stack">
+      <h3>Project</h3>
+      <div><label for="pj_title">Project name</label><input type="text" id="pj_title" placeholder="Used for file names"></div>
+      <div><label for="pj_author">Author</label><input type="text" id="pj_author"></div>
+      <div><label for="pj_notes">Notes</label><textarea id="pj_notes" rows="3"></textarea></div>
+    </div>
+    <div class="card stack">
+      <h3>Workspaces in this browser</h3>
+      <p class="hint">Each browser tab works on its own workspace, saved here as you go. Earlier workspaces stay below; the 20 most recent are kept.</p>
+      <div class="row"><button class="btn small" id="btnNewWs" type="button">New workspace</button>
+        <button class="btn small" id="btnSaveAsWs" type="button">Save as new file</button>
+        <span class="hint" id="wsFile"></span></div>
+      <ul class="recent" id="recentList"></ul>
+    </div>
+  </div>
+  </details>
+</section>
+
+<section class="panel" id="tab-list" hidden>
+  <div class="head"><div><h2>Download list</h2><p class="lede">Pick the samples and file types you need, then save one file list with every URL to hand to whoever downloads the data.</p></div>
+    <span class="hint" id="planCount"></span></div>
+  <div id="planBody"></div>
+</section>
+
+<section class="panel about" id="tab-about" hidden>
+  <div><h2>About <span class="app-name">Data Seeker</span></h2>
+    <p class="lede">Data Seeker finds public sequencing datasets for a gene or topic, scores them for reliability, and produces a list of the exact files to download.</p></div>
+  <div class="card"><h3>Author</h3><dl id="aboutAuthor"></dl></div>
+  <div class="card lab">
+    <h3>Research group</h3>
+    <svg class="lab-lockup" viewBox="0 0 895 200" role="img" aria-label="RNA Medicine Group · Roberts Lab" xmlns="http://www.w3.org/2000/svg">
+      <g transform="scale(2)">
+        <defs><clipPath id="labclip"><circle cx="50" cy="50" r="45.5"/></clipPath></defs>
+        <circle cx="50" cy="50" r="45.5" fill="#EAE4DC"/>
+        <g clip-path="url(#labclip)"><path d="M-5.7 17.6 L9.6 27.1 L7.6 37.2 L-1.7 41.0 L-9.2 37.1 L-10.4 22.2Z" fill="#bcc5d9"/><path d="M4.1 61.9 L-0.8 60.3 L-10.4 66.9 L-10.1 72.0 L-1.7 78.5 L8.6 76.4Z" fill="#2b57a4"/><path d="M-4.4 14.8 L10.9 24.4 L18.1 20.0 L13.1 2.5 L11.2 1.1 L11.1 1.1 L-3.6 11.7Z" fill="#d7dae2"/><path d="M10.6 37.5 L17.1 42.0 L31.0 38.2 L30.0 25.2 L19.8 23.0 L12.6 27.4Z" fill="#f2e3e0"/><path d="M5.4 59.2 L0.5 57.7 L-0.4 43.7 L8.9 40.0 L15.3 44.5 L15.7 56.5Z" fill="#d5d9e2"/><path d="M6.6 61.9 L11.0 76.4 L15.2 78.1 L21.2 75.1 L24.7 64.3 L16.9 59.1Z" fill="#708cbd"/><path d="M13.9 80.6 L13.0 94.0 L7.1 97.4 L-1.1 91.9 L-0.4 81.1 L9.8 79.0Z" fill="#1f4ea0"/><path d="M37.9 4.4 L33.8 0.8 L34.7 -13.9 L41.7 -18.6 L49.5 -9.2 L47.1 0.8Z" fill="#d56463"/><path d="M34.9 19.1 L31.2 22.4 L21.0 20.3 L16.0 2.8 L32.1 3.4 L36.2 7.0Z" fill="#c3cbdb"/><path d="M36.6 21.7 L32.9 25.0 L33.8 38.0 L37.7 42.0 L53.9 34.6 L49.0 24.6Z" fill="#efd4d1"/><path d="M18.6 56.6 L18.2 44.6 L32.1 40.8 L35.9 44.8 L37.7 57.5 L26.4 61.7Z" fill="#8098c3"/><path d="M27.4 64.3 L38.7 60.0 L41.0 61.4 L45.0 69.7 L34.2 83.0 L23.8 75.0Z" fill="#f5ede9"/><path d="M27.8 98.5 L15.5 94.1 L16.4 80.7 L22.4 77.6 L32.8 85.6 L33.7 89.4Z" fill="#6b87bb"/><path d="M40.5 113.0 L33.0 109.8 L30.3 100.6 L36.2 91.5 L55.0 95.2 L55.2 96.1 L48.0 110.7Z" fill="#6080b7"/><path d="M68.2 3.9 L68.2 -5.5 L63.8 -10.2 L52.3 -8.4 L49.9 1.6 L61.1 9.2 L62.1 9.1Z" fill="#d56362"/><path d="M37.4 19.1 L49.8 22.0 L59.2 10.9 L47.9 3.4 L38.7 7.0Z" fill="#dddfe5"/><path d="M62.4 12.9 L61.4 13.0 L52.1 24.0 L57.0 34.0 L66.8 38.4 L68.6 37.7 L71.2 28.5Z" fill="#d97775"/><path d="M65.1 41.4 L60.8 50.7 L43.2 58.5 L40.9 57.1 L39.1 44.4 L55.3 37.0Z" fill="#e3a09e"/><path d="M68.5 73.6 L68.7 71.3 L61.9 53.5 L44.3 61.3 L48.3 69.6 L60.6 77.8Z" fill="#c6cddc"/><path d="M55.5 92.6 L59.0 80.0 L46.6 71.8 L35.9 85.0 L36.8 88.9Z" fill="#afbbd4"/><path d="M70.1 5.9 L83.3 10.1 L84.1 18.3 L72.9 26.7 L64.1 11.1Z" fill="#cd4242"/><path d="M85.0 20.7 L93.6 26.5 L91.7 37.0 L74.9 40.0 L71.3 38.4 L73.8 29.2Z" fill="#e6aeab"/><path d="M69.8 41.0 L73.5 42.6 L81.7 55.3 L70.5 68.8 L63.6 51.0 L68.0 41.7Z" fill="#e3a09e"/><path d="M95.3 60.5 L83.4 58.0 L72.1 71.5 L71.8 73.7 L80.6 77.7 L93.4 73.7Z" fill="#dd8987"/><path d="M58.6 93.2 L62.0 80.7 L69.8 76.4 L78.6 80.4 L80.7 92.1 L70.9 100.2 L58.8 94.2Z" fill="#d1d6e0"/><path d="M116.3 39.7 L114.8 42.8 L103.9 47.0 L95.2 37.4 L97.1 26.9 L105.8 23.6 L114.4 28.3Z" fill="#ce4747"/><path d="M96.5 57.9 L84.6 55.3 L76.3 42.6 L93.1 39.5 L101.8 49.1 L98.1 56.5Z" fill="#d66a69"/><path d="M94.7 76.1 L82.0 80.1 L84.1 91.9 L92.7 96.6 L100.9 92.1 L100.3 81.2Z" fill="#b6c1d6"/></g>
+        <circle cx="50" cy="50" r="47" fill="none" stroke="var(--brand-ink)" stroke-width="3"/>
+      </g>
+      <g font-family="'IBM Plex Sans','Helvetica Neue',Arial,sans-serif">
+        <text x="240" y="102" font-size="64" letter-spacing="-1.5" fill="var(--brand-ink)"><tspan font-weight="600">RNA</tspan><tspan font-weight="300"> Medicine Group</tspan></text>
+        <text x="247" y="142" font-size="20" font-weight="500" letter-spacing="4.4" fill="var(--brand-sub)">ROBERTS LAB</text>
+      </g>
+    </svg>
+  </div>
+  <div class="card stack"><h3>Citing</h3><p id="aboutCite" class="mono"></p></div>
+  <div class="card stack"><h3>How it works</h3>
+    <p><b>Search.</b> Your term is sent to NCBI GEO (series records), the ENCODE portal and EBI ArrayExpress at the same time. With alias expansion on, NCBI Gene supplies the gene's official symbol and aliases (MyoD also finds MYOD1, Myod1 and MYF3); short or ambiguous aliases start switched off. ArrayExpress copies of GEO studies are merged into the GEO record.</p>
+    <p><b>Metadata.</b> Species come from the repository; cell lines, cell types and tissues are matched against a dictionary of about 40 names in the title, summary and sample names; the assay comes from the GEO data type and keywords.</p>
+    <p><b>Study design.</b> Each study's sample names are checked for your term to count the samples about your target, and for input, IgG or whole-cell extract controls that share their cell line or condition. A study is <i>dedicated</i> when at least half its samples (or all of a study of four or fewer) are target samples or their controls, <i>partly about the target</i> from 15%, and <i>a minor part</i> below that. Time courses, knockouts, overexpression, drug treatments, disease models, patient cohorts, three or more ChIP targets, three or more cell types and 40 or more samples count as design factors: two make a design moderate, four complex.</p>
+    <p><b>Reliability score (0 to 100).</b> Points for a linked publication (+25), ENCODE processing standards (+35), two or more samples on your target (+15), a matched control (+8), raw reads deposited (+15), processed files (+10), a study dedicated to your target (+10) and release in the last eight years (+5). Points off when the target is a minor part of a bigger study (−15), only mentioned in the text (−5), the design is complex (−10), a ChIP has no control (−5), the record is a SuperSeries (−5), or ENCODE audits flag problems. Tier A is 70 or more, Tier B 45 to 69, Tier C below 45. Each result lists its own breakdown.</p>
+    <p><b>Download list.</b> For each chosen GEO sample the app reads the sample's GEO record for its supplementary files and genome build, and finds its SRA runs through NCBI and FASTQ links through ENA. ENCODE files come from the ENCODE file list with their size, assembly and md5.</p>
+  </div>
+  <div class="card stack"><h3>Your data</h3>
+    <p>Everything runs in this single HTML file. To search, your search terms and the accessions you pick are sent to NCBI, ENCODE and EBI; nothing else leaves the browser and nothing is uploaded. Each browser tab keeps its own workspace (project details, last search, saved datasets and download list) in this browser's storage, and the 20 most recent workspaces are kept. Your NCBI API key, if you add one, is stored once for all tabs. Save workspace keeps a portable copy as a .json file.</p></div>
+  <div class="card stack"><h3>Limitations</h3><ul>
+    <li>The score is a triage aid built from metadata, not a judgement of data quality. Check antibodies, controls and replicates on the repository page before relying on a dataset.</li>
+    <li>Cell types, controls and design factors are read from sample names and free text, so unusual naming can be missed or misread.</li>
+    <li>GEO search returns up to 500 series per query; narrow the search if the total is larger.</li>
+    <li>Some browsers block reading GEO sample records directly. The download list then gives each sample's GEO folder instead of individual file names.</li>
+    <li>Genome builds are taken from the text of GEO records and are empty when a study does not state them.</li>
+    <li>Search results are not stored in the workspace; reopening a workspace runs its search again, so counts can change as repositories update.</li>
+    <li>The app needs a network connection to search. Workspaces, saved datasets and download lists open offline.</li>
+  </ul></div>
+  <div class="card"><h3>Version history</h3><ul id="versionList">
+    <li><b>2.2.0</b> · The header Saved and Download list buttons open side panels over the results; the Saved view points to saved datasets in other workspaces.</li>
+    <li><b>2.1.0</b> · Three tabs: search and results together on one tab, saved datasets in the results, project and workspaces folded at the foot.</li>
+    <li><b>2.0.0</b> · Roberts Lab house style: numbered tabs, Save and Load workspace, Reset and Help dialogs, provenance record, About page. Each browser tab keeps its own workspace, with recent workspaces listed and older saves carried over.</li>
+    <li><b>1.4.0</b> · Download list exports a plain file list of URLs, SRA runs and requirements.</li>
+    <li><b>1.3.0</b> · Download list for choosing samples and files.</li>
+    <li><b>1.2.0</b> · Saved datasets kept across searches.</li>
+    <li><b>1.1.0</b> · Study design analysis: study focus, design complexity, samples you need.</li>
+    <li><b>1.0.0</b> · First version: live search of GEO, ENCODE and ArrayExpress with reliability tiers and filters.</li>
+  </ul></div>
+</section>
+</main>
+
+<!-- Help -->
+<div class="modal-bg" id="helpModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="row" style="justify-content:space-between"><h2 id="helpTitle" style="margin:0">Using <span class="app-name">Data Seeker</span></h2>
+      <button class="btn small" id="btnHelpClose" type="button">Close</button></div>
+    <p class="lede">Find public sequencing datasets, judge which to trust, and produce a list of the files to download.</p>
+    <dl class="help-dl">
+      <dt>1 · Search</dt><dd>Enter a gene or topic, pick the data type and species, and press Search. Results appear below, grouped by reliability tier. Filter on the left, open Details for samples and the score breakdown, and star the datasets to keep. <b>Saved</b> in the header opens your starred datasets in a side panel; they are kept across all searches in this workspace.</dd>
+      <dt>2 · Download list</dt><dd>Tick the samples and file types you need, then save the file list: one row per file with its URL, plus SRA runs for raw reads.</dd>
+      <dt>3 · About</dt><dd>Method, scoring rules, authorship and how to cite.</dd>
+    </dl>
+    <h3>Toolbar</h3>
+    <p class="hint"><b>Saved</b> opens your starred datasets in a side panel. <b>Download list</b> opens the list in a side panel without leaving your results. <b>Reset</b> clears this workspace. <b>Save</b> / <b>Load workspace</b> stores or restores the workspace as a .json file; Save writes back to the file you last saved or opened where the browser allows. Click the <b>icon</b> for full screen.</p>
+    <h3>Several tabs</h3>
+    <p class="hint">Each tab works on its own workspace. Earlier workspaces are listed at the foot of the Search tab, under Project and workspaces.</p>
+  </div>
+</div>
+
+<!-- Reset -->
+<div class="modal-bg" id="resetModal" hidden>
+  <div class="modal small" role="alertdialog" aria-modal="true" aria-labelledby="resetTitle">
+    <h2 id="resetTitle" style="margin:0">Reset everything?</h2>
+    <p class="lede">This clears this workspace's search, results, saved datasets, download list and project details. It can't be undone. Save a workspace first if you want to come back to this. Other workspaces and your NCBI API key are kept.</p>
+    <div class="row" style="justify-content:flex-end">
+      <button class="btn" id="btnResetCancel" type="button">Cancel</button>
+      <button class="btn danger" id="btnResetConfirm" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="savedDrawer" hidden aria-label="Saved datasets">
+  <div class="drawerHead">
+    <div><h2>Saved datasets</h2><span class="hint" id="savedCount"></span></div>
+    <div class="row" style="gap:6px">
+      <button class="btn small" id="savedToPlan" type="button">Add all to download list</button>
+      <button class="btn small" id="savedCopy" type="button">Copy accessions</button>
+      <button class="btn small" id="savedCsv" type="button">Export CSV</button>
+      <button class="btn small" id="btnSavedClose" type="button" aria-label="Close saved datasets">Close</button>
+    </div>
+  </div>
+  <div class="list" id="savedList"></div>
+</aside>
+<aside class="drawer" id="planDrawer" hidden aria-label="Download list">
+  <div class="drawerHead">
+    <div><h2>Download list</h2><span class="hint" id="planCountDrawer"></span></div>
+    <div class="row" style="gap:6px">
+      <button class="btn small" id="btnPlanFull" type="button">Open as page</button>
+      <button class="btn small" id="btnPlanClose" type="button" aria-label="Close the download list">Close</button>
+    </div>
+  </div>
+  <div id="planDrawerBody"></div>
+</aside>
+<div class="drop" id="dropOverlay" hidden>Drop a workspace to open it</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+"use strict";
+/* ---------- identity: edit here ---------- */
+const ABOUT = {
+  app:'Data Seeker', slug:'dataseeker', version:'2.2.0', date:'October 2026', year:'2026',
+  author:'Huang J. and Thomas Roberts', citeName:'Huang J., Roberts T.C.', affiliation:'Department of Paediatrics, University of Oxford',
+  group:'RNA Medicine Group · Roberts Lab', emails:['junyu.huang@paediatrics.ox.ac.uk','thomas.roberts@paediatrics.ox.ac.uk']
+};
+/* App icon: a magnifier over data bars, teal accent family. Used for the tab favicon and the header button. */
+const ICON_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="#13798A"/><rect x="5" y="19" width="3.2" height="7" rx="1" fill="#DBF0F3"/><rect x="9.6" y="15" width="3.2" height="11" rx="1" fill="#DBF0F3"/><circle cx="18.5" cy="12.5" r="6.2" fill="none" stroke="#ffffff" stroke-width="2.6"/><path d="M23 17.2 L27.4 21.6" stroke="#ffffff" stroke-width="3" stroke-linecap="round"/></svg>';
+
+/* ---------- utilities ---------- */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const uniq = a => [...new Set(a.filter(Boolean))];
+const slug = s => (String(s||'').trim().replace(/[^A-Za-z0-9._-]+/g,'_').replace(/^_+|_+$/g,'').slice(0,60)) || ABOUT.slug;
+function store(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } }
+function recall(k){ try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } }
+let toastT = 0;
+function toast(m){ const t=$('toast'); t.textContent=m; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(()=>t.hidden=true, 2600); }
+
+/* ---------- state (one workspace per browser tab) ---------- */
+const DEFAULT_TYPES = {signal:true, peaks:true, other:false, raw:false};
+const S = {
+  records: [], query: null, aliases: [], aliasOn: new Set(),
+  sel: {}, within: "", yearMin: null, yearMax: null, groupBy: "tier", sortBy: "score",
+  saved: {}, showSaved: false, plan: {}, planTypes: {...DEFAULT_TYPES},
+  project: {title:"", author:"", date:"", notes:""}, lastRun: null, geoTerm: "", runId: 0
+};
+let currentTab = "search";
+const ASSAY_LABEL = {chip:"ChIP-seq", cut:"CUT&RUN / CUT&Tag", rna:"Bulk RNA-seq", sc:"Single-cell RNA-seq", atac:"ATAC-seq", hic:"Hi-C", any:"Any sequencing data"};
+
+/* ---------- constants ---------- */
+const EUTILS = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/";
+const NOW_YEAR = new Date().getFullYear();
+const MATCH_LABEL = {sample:"Target in sample names", target:"ENCODE target", title:"Target in title", summary:"Mentioned in text", none:"No direct mention"};
+
+const GEO_ASSAY = {
+  chip:'("ChIP-seq" OR "ChIP seq" OR ChIPseq OR ChIP-exo OR "genome binding/occupancy profiling by high throughput sequencing"[DataSet Type])',
+  cut:'("CUT&RUN" OR "CUT&Tag" OR "CUT and RUN" OR "CUT and Tag" OR CUTRUN OR CUTandRUN OR CUTandTag)',
+  rna:'"expression profiling by high throughput sequencing"[DataSet Type]',
+  sc:'("single cell" OR "single-cell" OR scRNA-seq OR "scRNA seq" OR snRNA-seq OR "single nucleus" OR "single-nucleus" OR "single nuclei" OR "10x Genomics")',
+  atac:'("ATAC-seq" OR "ATAC seq" OR ATACseq)',
+  hic:'("Hi-C" OR HiChIP OR "Micro-C" OR "chromosome conformation")',
+  any:''
+};
+const ENCODE_ASSAY = {chip:"ChIP-seq", rna:"RNA-seq", atac:"ATAC-seq"};
+const AE_ASSAY = {chip:"ChIP-seq", cut:"CUT&RUN", rna:"RNA-seq", sc:"single cell RNA-seq", atac:"ATAC-seq", hic:"Hi-C", any:""};
+
+const ASSAY_RULES = [
+  ["CUT&RUN / CUT&Tag", /cut\s*(&|and|-)\s*(run|tag)|cutandrun|cutandtag|cutrun/i],
+  ["ChIP-seq", /chip[-\s_]?seq|chip[-\s]?exo|chipmentation|genome binding\/occupancy|\bchip\b/i],
+  ["snRNA-seq", /single[-\s]?nucle|\bsnrna|sn-?rna-?seq|\bsnseq\b/i],
+  ["scRNA-seq", /single[-\s]?cell rna|single[-\s]?cell transcript|\bscrna|sc-?rna-?seq|10x genomics|drop-?seq|smart-?seq|single[-\s]?cell sequencing|single-cell|single cell/i],
+  ["ATAC-seq", /atac/i],
+  ["Hi-C / 3D", /\bhi-?c\b|hichip|micro-?c\b|chromosome conformation/i],
+  ["Methylation", /bisulfite|methylation profiling|\bwgbs\b|\brrbs\b/i],
+  ["Microarray", /profiling by array|microarray/i]
+];
+
+const SPECIES_WORDS = [
+  ["Homo sapiens",/\bhuman\b|homo sapiens/i],["Mus musculus",/\bmouse\b|\bmice\b|\bmurine\b|mus musculus/i],
+  ["Rattus norvegicus",/\brats?\b|rattus/i],["Danio rerio",/zebrafish|danio rerio/i],["Gallus gallus",/\bchick(en)?\b|gallus/i],
+  ["Sus scrofa",/\bpigs?\b|porcine|sus scrofa/i],["Bos taurus",/bovine|\bcattle\b|bos taurus/i],["Xenopus laevis",/xenopus/i],
+  ["Drosophila melanogaster",/drosophila/i],["Caenorhabditis elegans",/c\. elegans|caenorhabditis/i],["Ovis aries",/\bsheep\b|ovine/i]
+];
+
+/* cell line / cell type / tissue dictionary: [label, regex] (order = priority) */
+const CELL_RULES = [
+  ["C2C12",/c2c12/i],["LHCN-M2",/lhcn[-\s]?m2/i],["C3H10T1/2",/10t1\/2|10t½|c3h10t/i],["NIH3T3",/nih[-\s]?3t3/i],
+  ["RD (rhabdomyosarcoma)",/\bRD cells?\b|\bRD\b(?= (cell|line))/],["RH4",/\brh-?4\b/i],["RH30",/\brh-?30\b/i],["RH41",/\brh-?41\b/i],
+  ["HSMM",/\bhsmm\b/i],["HSMMtube",/hsmmtube/i],["MEF",/\bmefs?\b|embryonic fibroblast/i],
+  ["HeLa",/hela/i],["HEK293",/hek[-\s]?293|293t\b/i],["K562",/k-?562/i],["GM12878",/gm12878/i],["HepG2",/hepg-?2/i],
+  ["MCF-7",/mcf-?7/i],["A549",/a549/i],["IMR-90",/imr-?90/i],["H1 hESC",/\bh1\b(?=.{0,20}(esc|embryonic|hesc))|h1-hesc/i],["H9 hESC",/\bh9\b/i],
+  ["mESC",/\bmescs?\b|mouse embryonic stem|mouse es cells?|\bE14\b/i],["hESC",/\bhescs?\b|human embryonic stem/i],["iPSC",/ipscs?\b|induced pluripotent/i],
+  ["Satellite cells / MuSCs",/satellite cells?|\bmuscs?\b|muscle stem cells?/i],["Myoblasts",/myoblasts?/i],["Myotubes",/myotubes?/i],
+  ["Fibroblasts",/fibroblasts?/i],["Cardiomyocytes",/cardiomyocytes?/i],["Neurons",/\bneurons?\b|neuronal/i],
+  ["T cells",/\bt[-\s]cells?\b|cd4\+|cd8\+/i],["B cells",/\bb[-\s]cells?\b/i],["Macrophages",/macrophages?/i],
+  ["Hepatocytes",/hepatocytes?/i],["Adipocytes",/adipocytes?|preadipocyte/i],["Embryo",/\bembryos?\b|embryonic day|\bE\d{1,2}\.5\b/i],
+  ["Skeletal muscle (tissue)",/skeletal muscle|tibialis anterior|gastrocnemius|quadriceps|\bsoleus\b|diaphragm|limb muscle/i],
+  ["Heart (tissue)",/\bheart\b|cardiac tissue/i],["Liver (tissue)",/\bliver\b/i],["Brain (tissue)",/\bbrain\b|cortex|hippocamp/i],
+  ["Tumour samples",/tumou?rs?\b|patient[-\s]derived|xenograft/i]
+];
+
+function aliasRegex(aliases){
+  if(!aliases.length) return null;
+  const parts = aliases.slice().sort((a,b)=>b.length-a.length).map(reEsc);
+  return new RegExp("(^|[^A-Za-z0-9])(" + parts.join("|") + ")(?![A-Za-z0-9])", "i");
+}
+function detectAssays(text, gdstype){
+  const t = (gdstype||"") + " " + text;
+  const out = [];
+  for(const [lab,re] of ASSAY_RULES) if(re.test(t)) out.push(lab);
+  // "\bchip\b" alone is too loose when CUT&RUN matched
+  if(/expression profiling by high throughput sequencing/i.test(gdstype||"") && !out.some(a=>/scRNA|snRNA/.test(a))) out.push("RNA-seq");
+  else if(/\brna[-\s_]?seq\b/i.test(text) && !out.some(a=>/RNA/.test(a))) out.push("RNA-seq");
+  if(out.includes("Microarray") && /high throughput sequencing/i.test(gdstype||"") === false && out.length>1){ /* keep both */ }
+  return out.length ? uniq(out) : ["Other"];
+}
+function detectSpecies(text){ return SPECIES_WORDS.filter(([,re])=>re.test(text)).map(([s])=>s); }
+function detectCells(text){ return uniq(CELL_RULES.filter(([,re])=>re.test(text)).map(([l])=>l)); }
+
+/* ---------- study design analysis (rule-based, no AI) ---------- */
+const CONTROL_RE = /\binput\b|\bigg\b|\bwce\b|whole[-\s]?cell[-\s]?extract|no[-_\s]?(ab|antibody)\b|mock[-_\s]?ip|\bcontrol[-_\s]?(chip|ip)\b/i;
+const GENERIC_TOK = new Set(("chip seq chipseq chip-seq rep replicate rep1 rep2 rep3 rep4 r1 r2 r3 br1 br2 tr1 input igg wce control ctrl ip mock "+
+  "sample library lib run lane rna atac cut tag cutrun cutandrun cutandtag the and of in with for to vs total exp experiment batch").split(" "));
+const FACTOR_RULES = [
+  ["Time course", /time[-\s]?course|\b\d+\s?(h|hr|hrs|hours|min)\b|\bday\s?\d+\b|\b[dD]\d{1,2}\b|\bE\d{1,2}(\.5)?\b|\bP\d{1,2}\b|\d+\s?dpi\b|\d+\s?hpf\b/],
+  ["Knockout / knockdown", /knock[-\s]?(out|down)|\bc?KO\b|\bsh[A-Z0-9]|shRNA|siRNA|\bsi[A-Z][A-Za-z0-9]+|CRISPR|sgRNA|deletion|-\/-|\bnull\b|mutant|depletion|degron|dTAG/i],
+  ["Overexpression / inducible", /over-?express|\bOE\b|ectopic|doxycycline|\bdox\b|inducible|transduc|transfect|tamoxifen/i],
+  ["Drug or treatment", /treat(ed|ment)|inhibitor|\bDMSO\b|vehicle|agonist|antagonist|\b\d+\s?(nM|uM|µM|mM)\b|stimulat/i],
+  ["Disease or injury model", /tumou?r|cancer|carcinoma|sarcoma|dystroph|\bmdx\b|injur|cardiotoxin|\bCTX\b|disease/i],
+  ["Patient / donor cohort", /patients?\b|cohort|donors?\b|biops(y|ies)/i]
+];
+const FOCUS = {dedicated:"Dedicated to target", partial:"Partly about target", minor:"Target is a minor part", indirect:"Indirect (target not in samples)", unknown:"Unknown (no sample list)"};
+const sp = t => (t||"").replace(/_/g," ");   // underscores in sample names break \b word boundaries
+const tokens = t => (t||"").toLowerCase().split(/[^a-z0-9.]+/).filter(x=>x && !GENERIC_TOK.has(x) && !/^\d{1,2}$/.test(x));
+
+function analyzeDesign(r, aliasRe){
+  const total = r.samples.length;
+  const text = sp(`${r.title} ${r.summary} ${r.samples.map(s=>s.title).join(" | ")}`);
+  const isChip = r.assays.some(a=>/ChIP|CUT/.test(a));
+  // samples about the target, and the input/IgG controls that go with them
+  const rel = aliasRe ? r.samples.filter(s=>aliasRe.test(s.title) && !CONTROL_RE.test(sp(s.title))) : [];
+  const controls = r.samples.filter(s=>CONTROL_RE.test(sp(s.title)));
+  let matched = [];
+  if(rel.length && controls.length){
+    const aliasToks = new Set(tokens((S.query?.terms||[]).join(" ")));
+    const relToks = new Set(rel.flatMap(s=>tokens(s.title)).filter(t=>!aliasToks.has(t)));
+    matched = controls.filter(c=>tokens(c.title).some(t=>relToks.has(t)));
+    if(!matched.length && controls.length<=6) matched = controls;
+  }
+  // design factors
+  const factors = FACTOR_RULES.filter(([,re])=>re.test(text)).map(([l])=>l);
+  if(isChip){
+    const targets = new Set();
+    for(const s0 of r.samples){
+      const s = {title: sp(s0.title)};
+      for(const m of s.title.matchAll(/H[1-4]K\d+(me[1-3]|ac)?/gi)) targets.add(m[0].toUpperCase());
+      const m2 = s.title.match(/([A-Za-z][A-Za-z0-9]{1,9})[_\-\s.]+(chip|cut|cnr|ab)\b/i) || s.title.match(/\b(chip|cut)[_\-\s.]+([A-Za-z][A-Za-z0-9]{1,9})/i);
+      if(m2){ const t=(m2[1].match(/chip|cut/i)?m2[2]:m2[1]).toUpperCase(); if(!GENERIC_TOK.has(t.toLowerCase()) && !CONTROL_RE.test(t)) targets.add(t); }
+    }
+    if(targets.size>=3) factors.push(`Several ChIP targets (${targets.size})`);
+  }
+  if(r.cells.length>=3) factors.push(`Several cell types (${r.cells.length})`);
+  if(total>=40) factors.push(`Large study (${total} samples)`);
+  const complexity = factors.length>=4 ? "Complex" : factors.length>=2 ? "Moderate" : "Simple";
+  // how much of the study is about the target
+  let focus;
+  if(r.source==="ENCODE") focus = r.match==="target" ? "dedicated" : "indirect";
+  else if(!total) focus = "unknown";
+  else if(!rel.length) focus = "indirect";
+  else {
+    const frac = (rel.length + matched.length) / total;
+    focus = (frac>=0.5 || total<=4) ? "dedicated" : frac>=0.15 ? "partial" : "minor";
+  }
+  return {rel, matched, controls, total, factors, complexity, focus, focusLabel:FOCUS[focus],
+          relCount: r.source==="ENCODE" ? (r.match==="target" ? r.samples.length : 0) : rel.length};
+}
+
+/* ---------- reliability score (transparent heuristic) ---------- */
+function scoreRecord(r, aliasRe){
+  const d = r.design = analyzeDesign(r, aliasRe);
+  const isChip = r.assays.some(a=>/ChIP|CUT/.test(a));
+  const parts = [];
+  if(r.pubmed.length) parts.push(["Linked peer-reviewed publication", 25]);
+  if(r.source==="ENCODE"){
+    parts.push(["ENCODE uniform processing and QC standards", 35]);
+    const a = r.audit || {};
+    if(a.ERROR) parts.push([`ENCODE audit: ${a.ERROR} error flag(s)`, -25]);
+    if(a.NOT_COMPLIANT) parts.push([`ENCODE audit: ${a.NOT_COMPLIANT} not-compliant flag(s)`, -15]);
+    if(a.WARNING) parts.push([`ENCODE audit: ${a.WARNING} warning(s)`, -Math.min(10, 3*a.WARNING)]);
+    if(r.nSamples>=2) parts.push([`${r.nSamples} replicates`, 15]);
+    if(isChip) parts.push(["ENCODE pairs every ChIP with a control", 8]);
+  } else if(d.total){
+    if(d.relCount>=2) parts.push([`${d.relCount} samples on your target (replicates possible)`, 15]);
+    else if(d.relCount===1) parts.push(["Only 1 sample on your target, no replicate", 4]);
+    else if(r.nSamples>=2) parts.push([`${r.nSamples} samples, none named for your target`, 3]);
+    if(isChip && d.matched.length) parts.push([`Matched input/IgG control (${d.matched.length})`, 8]);
+    else if(isChip && d.relCount) parts.push(["No input/IgG control found in sample names", -5]);
+  } else if(r.nSamples>=2) parts.push([`${r.nSamples} samples`, 8]);
+  if(r.hasRaw) parts.push(["Raw reads deposited (SRA / ENA)", 15]);
+  if(r.processed) parts.push(["Processed files available", 10]);
+  const focusPts = {dedicated:["Study is dedicated to your target",10], partial:["Your target is part of the study",3],
+    minor:["Your target is a minor part of a bigger study",-15], indirect:[r.match==="title"?"Target in title but not in sample names":"Target only mentioned in the text", r.match==="title"?0:-5]}[d.focus];
+  if(focusPts && aliasRe) parts.push(focusPts);
+  if(d.complexity==="Complex") parts.push(["Complex design: check which samples apply", -10]);
+  if(r.year && r.year >= NOW_YEAR-8) parts.push([`Recent (${r.year})`, 5]);
+  if(r.superSeries) parts.push(["SuperSeries container (duplicates its SubSeries)", -5]);
+  const score = Math.max(0, Math.min(100, parts.reduce((s,[,p])=>s+p, 0)));
+  r.score = score; r.why = parts; r.tier = score>=70 ? "A" : score>=45 ? "B" : "C";
+  return r;
+}
+
+/* ---------- normalisers (pure, testable) ---------- */
+function normGEO(d, aliasRe){
+  const samples = (d.samples||[]).map(s=>({acc:s.accession, title:s.title}));
+  const sampleText = samples.map(s=>s.title).join(" | ");
+  const text = `${d.title} ${d.summary} ${sampleText}`;
+  let match = "none";
+  if(aliasRe){
+    if(samples.some(s=>aliasRe.test(s.title))) match = "sample";
+    else if(aliasRe.test(d.title)) match = "title";
+    else if(aliasRe.test(d.summary)) match = "summary";
+  }
+  const species = uniq((d.taxon||"").split(/;\s*/));
+  const pdat = d.pdat || "";
+  const year = parseInt(pdat.slice(0,4),10) || null;
+  const rel = d.extrelations || [];
+  const sra = rel.find(x=>/sra/i.test(x.relationtype||""));
+  const acc = d.accession || ("GSE"+d.gse);
+  const superSeries = /superseries/i.test(d.summary||"") || /superseries/i.test(d.title||"");
+  return scoreRecord({
+    id:"GEO:"+acc, source:"GEO", accession:acc,
+    url:`https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${acc}`,
+    title:d.title||"", summary:d.summary||"", species: species.length?species:detectSpecies(text),
+    cells: detectCells(text), assays: detectAssays(text, d.gdstype), gdstype:d.gdstype||"",
+    nSamples: +d.n_samples || samples.length, samples, date: pdat.replace(/\//g,"-"), year,
+    pubmed: (d.pubmedids||[]).map(String), hasRaw: !!sra, sraAcc: sra ? sra.targetobject : "",
+    processed: !!(d.suppfile && d.suppfile.trim()), suppfile: d.suppfile||"",
+    ftp: (d.ftplink||"").replace(/^ftp:/,"https:"), platform: d.gpl ? "GPL"+String(d.gpl).split(";")[0] : "",
+    match, superSeries
+  }, aliasRe);
+}
+function normENCODE(e, aliasRe){
+  const bo = e.biosample_ontology || {};
+  const reps = e.replicates || [];
+  const orgs = uniq(reps.map(r=>r?.library?.biosample?.organism?.scientific_name));
+  const target = e.target?.label || "";
+  const text = `${e.description||""} ${e.biosample_summary||""} ${bo.term_name||""}`;
+  let match = "none";
+  if(aliasRe){
+    if(target && aliasRe.test(target)) match = "target";
+    else if(aliasRe.test(text)) match = "summary";
+  }
+  const audit = {};
+  for(const k of ["ERROR","NOT_COMPLIANT","WARNING"]) if(e.audit && e.audit[k]) audit[k] = e.audit[k].length;
+  const date = e.date_released || "";
+  const cells = uniq([bo.term_name, ...detectCells(text)]);
+  return scoreRecord({
+    id:"ENCODE:"+e.accession, source:"ENCODE", accession:e.accession,
+    url:`https://www.encodeproject.org/experiments/${e.accession}/`,
+    title:`${e.assay_title||e.assay_term_name||"Experiment"}${target?" · "+target:""} in ${e.biosample_summary||bo.term_name||"unknown biosample"}`,
+    summary:e.description||"", species: orgs.length?orgs:detectSpecies(text), cells,
+    biosampleClass: bo.classification||"",
+    assays: detectAssays(`${e.assay_title||""} ${e.assay_term_name||""}`, ""), nSamples: reps.length,
+    samples: reps.map((r,i)=>({acc:`Replicate ${r.biological_replicate_number??i+1}.${r.technical_replicate_number??1}`, title:r?.library?.biosample?.summary||""})),
+    date, year: parseInt(date.slice(0,4),10)||null, pubmed: [], hasRaw: true, processed: true,
+    lab: e.lab?.title||"", project: e.award?.project||"", audit, match, target, superSeries:false
+  }, aliasRe);
+}
+function normAE(h, aliasRe){
+  const text = `${h.title||""} ${h.content||""}`;
+  let match = "none";
+  if(aliasRe){ if(aliasRe.test(h.title||"")) match="title"; else if(aliasRe.test(h.content||"")) match="summary"; }
+  const date = h.release_date || "";
+  return scoreRecord({
+    id:"AE:"+h.accession, source:"ArrayExpress", accession:h.accession,
+    url:`https://www.ebi.ac.uk/biostudies/arrayexpress/studies/${h.accession}`,
+    title:h.title||"", summary:(h.content||"").slice(0,1200), species:detectSpecies(text), cells:detectCells(text),
+    assays:detectAssays(text,""), nSamples:0, samples:[], date, year:parseInt(date.slice(0,4),10)||null,
+    pubmed:[], hasRaw: /ena|sra|fastq|raw/i.test(h.content||""), processed:(+h.files||0)>0,
+    author:h.author||"", match, superSeries:false
+  }, aliasRe);
+}
+
+/* ---------- network ---------- */
+async function getJSON(url, opts){
+  const res = await fetch(url, opts);
+  if(res.status===404){ try{ return await res.json(); }catch(e){ return {}; } }  // ENCODE returns 404 for zero hits
+  if(!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+/* NCBI calls are queued one at a time and spaced to stay under the rate limit
+   (3/s without a key). A rate-limited reply has no CORS header, so the browser
+   reports it as a network error: we retry with back-off, then try POST. */
+let ncbiQueue = Promise.resolve(), lastNcbi = 0;
+function ncbi(path, params){
+  const job = ncbiQueue.then(()=>ncbiCall(path, params));
+  ncbiQueue = job.catch(()=>{});
+  return job;
+}
+async function ncbiCall(path, params){
+  const key = $("apikey").value.trim();
+  const gap = key ? 120 : 400;
+  const qs = new URLSearchParams({retmode:"json", ...params, tool:"data_seeker"});
+  const asText = qs.get("retmode")==="text";
+  const getIt = async (u, o) => { if(!asText) return getJSON(u, o); const r = await fetch(u, o); if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); };
+  if(key) qs.set("api_key", key);
+  let lastErr;
+  for(let attempt=0; attempt<4; attempt++){
+    const wait = lastNcbi + gap*(attempt+1) - Date.now(); if(wait>0) await sleep(wait);
+    lastNcbi = Date.now();
+    try{
+      if(attempt<3) return await getIt(`${EUTILS}${path}?${qs}`);
+      return await getIt(EUTILS + path, {method:"POST", body:qs});
+    }catch(e){ lastErr = e; await sleep(800*(attempt+1)); }
+  }
+  throw lastErr;
+}
+
+async function expandAliases(q){
+  if(!/^[A-Za-z0-9][A-Za-z0-9\-\.]{1,15}$/.test(q)) return [q];
+  const s = await ncbi("esearch.fcgi", {db:"gene", term:`${q}[Gene Name] AND alive[prop]`, retmax:"12"});
+  const ids = s?.esearchresult?.idlist || [];
+  if(!ids.length) return [q];
+  const sum = await ncbi("esummary.fcgi", {db:"gene", id:ids.join(",")});
+  const res = sum?.result || {};
+  const ql = q.toLowerCase();
+  const out = [q];
+  for(const id of res.uids||[]){
+    const g = res[id]; if(!g) continue;
+    const names = [g.name, ...(g.otheraliases||"").split(/,\s*/)].filter(Boolean);
+    if(!names.some(n=>n.toLowerCase()===ql)) continue;          // only genes that really carry this symbol
+    out.push(...names);
+  }
+  const seen = new Set(); const clean = [];
+  for(const a of out){ const k=a.toLowerCase(); if(a.length<3||/^\d+$/.test(a)||seen.has(k)) continue; seen.add(k); clean.push(a); }
+  return clean.slice(0,10);
+}
+
+async function searchGEO(terms, assay, org, extra, max, aliasRe, onProgress){
+  const parts = ["(" + terms.map(t=>`"${t}"`).join(" OR ") + ")"];
+  if(GEO_ASSAY[assay]) parts.push(GEO_ASSAY[assay]);
+  if(org) parts.push(`"${org}"[Organism]`);
+  if(extra) parts.push(`(${extra})`);
+  parts.push("gse[ETYP]");
+  const term = parts.join(" AND ");
+  const s = await ncbi("esearch.fcgi", {db:"gds", term, retmax:String(max), sort:"relevance"});
+  const ids = s?.esearchresult?.idlist || [];
+  const total = +(s?.esearchresult?.count||0);
+  const out = [];
+  for(let i=0;i<ids.length;i+=100){
+    const sum = await ncbi("esummary.fcgi", {db:"gds", id:ids.slice(i,i+100).join(",")});
+    const r = sum?.result || {};
+    for(const uid of r.uids||[]) if(r[uid] && r[uid].entrytype==="GSE") out.push(normGEO(r[uid], aliasRe));
+    onProgress(out.length, total);
+  }
+  return {records:out, total, term};
+}
+
+async function searchENCODE(terms, assay, org, aliasRe){
+  const fields = ["accession","assay_title","assay_term_name","target.label","biosample_ontology.term_name",
+    "biosample_ontology.classification","biosample_summary","description","status","date_released","lab.title",
+    "award.project","audit","replicates.biological_replicate_number","replicates.technical_replicate_number",
+    "replicates.library.biosample.organism.scientific_name","replicates.library.biosample.summary"];
+  const map = new Map();
+  for(const t of terms.slice(0,3)){
+    const u = new URL("https://www.encodeproject.org/search/");
+    u.searchParams.set("type","Experiment"); u.searchParams.set("status","released");
+    u.searchParams.set("searchTerm", t); u.searchParams.set("format","json"); u.searchParams.set("limit","200");
+    if(ENCODE_ASSAY[assay]) u.searchParams.set("assay_term_name", ENCODE_ASSAY[assay]);
+    if(org) u.searchParams.set("replicates.library.biosample.organism.scientific_name", org);
+    fields.forEach(f=>u.searchParams.append("field", f));
+    const j = await getJSON(u, {headers:{Accept:"application/json"}});
+    for(const e of j["@graph"]||[]) if(!map.has(e.accession)) map.set(e.accession, normENCODE(e, aliasRe));
+  }
+  let recs = [...map.values()];
+  const want = {cut:"CUT&RUN / CUT&Tag", sc:/scRNA|snRNA/, hic:"Hi-C / 3D"}[assay];
+  if(want) recs = recs.filter(r=>r.assays.some(a=> want instanceof RegExp ? want.test(a) : a===want));
+  return {records:recs, total:recs.length};
+}
+
+async function searchAE(terms, assay, org, extra, aliasRe){
+  const q = [ "(" + terms.map(t=>`"${t}"`).join(" OR ") + ")", AE_ASSAY[assay] ? `"${AE_ASSAY[assay]}"` : "", org ? `"${org}"` : "", extra||"" ].filter(Boolean).join(" AND ");
+  const u = new URL("https://www.ebi.ac.uk/biostudies/api/v1/arrayexpress/search");
+  u.searchParams.set("query", q); u.searchParams.set("pageSize","100");
+  const j = await getJSON(u);
+  const recs = (j.hits||[]).map(h=>normAE(h, aliasRe));
+  return {records:recs, total:+j.totalHits||recs.length};
+}
+
+/* ---------- run search ---------- */
+const SRC = {GEO:{label:"GEO"}, ENCODE:{label:"ENCODE"}, ArrayExpress:{label:"ArrayExpress"}};
+function setStatus(name, state, text){ SRC[name].state=state; SRC[name].text=text; renderStatus(); }
+function renderStatus(){
+  const html = Object.entries(SRC).filter(([,v])=>v.state).map(([k,v])=>
+    `<span class="srcst ${v.state}"><span class="dot"></span>${esc(k)} <b>${esc(v.text)}</b></span>`).join("");
+  $("status").innerHTML = html;
+}
+
+async function runSearch(fromChips, restoring){
+  const q = $("q").value.trim(); if(!q) return;
+  const runId = ++S.runId;
+  const assay = $("assay").value, org = $("org").value, extra = $("extra").value.trim();
+  const max = +$("maxn").value;
+  $("goBtn").disabled = true; $("goBtn").textContent = "Searching…";
+  for(const k in SRC){ SRC[k].state=null; }
+  S.records = [];
+  if(!restoring){ S.sel = {}; S.within = ""; $("within").value = ""; S.yearMin = S.yearMax = null; setView(false); try{ $("status").scrollIntoView({block:"start", behavior:"smooth"}); }catch(e){} }
+
+  // 1. gene alias expansion
+  if(!fromChips){
+    S.aliases = [q]; S.aliasOn = new Set([q]);
+    if($("expand").checked){
+      setStatus("GEO","busy","looking up gene aliases");
+      try{
+        S.aliases = await expandAliases(q);
+        S.aliasOn = new Set(S.aliases.filter(a=>a.length>=4 || a.toLowerCase()===q.toLowerCase()));
+      }catch(e){ S.aliases=[q]; S.aliasOn=new Set([q]); }
+    }
+  }
+  renderAliases();
+  const terms = S.aliases.filter(a=>S.aliasOn.has(a));
+  const aliasRe = aliasRegex(terms);
+  S.query = {q, assay, org, extra, terms};
+  renderPortals();
+
+  const jobs = [];
+  const add = recs => { if(runId!==S.runId) return; mergeRecords(recs); render(); };
+  if($("srcGEO").checked){
+    setStatus("GEO","busy","searching…");
+    jobs.push(searchGEO(terms, assay, org, extra, max, aliasRe, (n,t)=>setStatus("GEO","busy",`${n} of ${Math.min(t,max)} loaded`))
+      .then(r=>{ S.geoTerm = r.term; add(r.records); setStatus("GEO","ok", r.total>max ? `${r.records.length} shown of ${r.total}` : `${r.records.length}`); })
+      .catch(e=>setStatus("GEO","err", errMsg(e))));
+  }
+  if($("srcENCODE").checked){
+    setStatus("ENCODE","busy","searching…");
+    jobs.push(searchENCODE(terms.slice().sort((a,b)=>(b===b.toUpperCase())-(a===a.toUpperCase())), assay, org, aliasRe)
+      .then(r=>{ add(r.records); setStatus("ENCODE","ok", `${r.records.length}`); })
+      .catch(e=>setStatus("ENCODE","err", errMsg(e))));
+  }
+  if($("srcAE").checked){
+    setStatus("ArrayExpress","busy","searching…");
+    jobs.push(searchAE(terms, assay, org, extra, aliasRe)
+      .then(r=>{ const before=S.records.length; add(r.records); setStatus("ArrayExpress","ok", `${r.records.length} (GEO mirrors merged)`); })
+      .catch(e=>setStatus("ArrayExpress","err", errMsg(e))));
+  }
+  await Promise.allSettled(jobs);
+  if(runId===S.runId){
+    $("goBtn").disabled=false; $("goBtn").textContent="Search"; dedupeMirrors(); render();
+    S.lastRun = {q, assay, org, extra, terms, at:new Date().toISOString(), geoTerm:$("srcGEO").checked?S.geoTerm:"",
+      sources:Object.fromEntries(Object.entries(SRC).filter(([,v])=>v.state).map(([k,v])=>[k,v.text]))};
+    renderSrcChip(); if(restoring) writeDoc(); else autosave();
+  }
+}
+function errMsg(e){
+  const m = (e && e.message) || "failed";
+  return /fetch|network|load failed/i.test(m) ? `unreachable after 4 tries (${m}). Try again, add an NCBI API key, or check if your network blocks it` : m;
+}
+function mergeRecords(recs){
+  const have = new Set(S.records.map(r=>r.id));
+  for(const r of recs) if(!have.has(r.id)) S.records.push(r);
+  dedupeMirrors();
+}
+/* ArrayExpress E-GEOD-12345 is a mirror of GSE12345: keep the GEO record */
+function dedupeMirrors(){
+  const gse = new Set(S.records.filter(r=>r.source==="GEO").map(r=>r.accession));
+  S.records = S.records.filter(r=>{
+    if(r.source!=="ArrayExpress") return true;
+    const m = r.accession.match(/^E-GEOD-(\d+)$/); return !(m && gse.has("GSE"+m[1]));
+  });
+}
+
+/* ---------- facets & filtering ---------- */
+const FACETS = [
+  {key:"tier", label:"Reliability tier", get:r=>["Tier "+r.tier], order:["Tier A","Tier B","Tier C"]},
+  {key:"focus", label:"Study focus", get:r=>[r.design.focusLabel], order:Object.values(FOCUS)},
+  {key:"complexity", label:"Design complexity", get:r=>[r.design.complexity], order:["Simple","Moderate","Complex"]},
+  {key:"species", label:"Species", get:r=>r.species.length?r.species:["Not stated"]},
+  {key:"cell", label:"Cell line / cell type / tissue", get:r=>r.cells.length?r.cells:["Not detected"]},
+  {key:"assay", label:"Assay", get:r=>r.assays},
+  {key:"source", label:"Repository", get:r=>[r.source]},
+  {key:"data", label:"Data available", get:r=>[r.hasRaw&&"Raw reads", r.processed&&"Processed files", r.pubmed.length&&"Has publication", r.superSeries&&"SuperSeries"].filter(Boolean)}
+];
+function baseSet(){ return S.showSaved ? Object.values(S.saved) : S.records; }
+function passes(r, skipKey){
+  for(const f of FACETS){
+    if(f.key===skipKey) continue;
+    const sel = S.sel[f.key]; if(!sel || !sel.size) continue;
+    if(!f.get(r).some(v=>sel.has(v))) return false;
+  }
+  if(S.yearMin && (!r.year || r.year<S.yearMin)) return false;
+  if(S.yearMax && (!r.year || r.year>S.yearMax)) return false;
+  if(S.within){
+    const hay = `${r.accession} ${r.title} ${r.summary} ${r.cells.join(" ")} ${r.species.join(" ")} ${r.samples.map(s=>s.title).join(" ")}`.toLowerCase();
+    if(!S.within.toLowerCase().split(/\s+/).every(w=>hay.includes(w))) return false;
+  }
+  return true;
+}
+function filtered(){ return baseSet().filter(r=>passes(r)); }
+
+/* ---------- render ---------- */
+function renderAliases(){
+  const row = $("aliasRow");
+  if(S.aliases.length<=1){ row.hidden = true; return; }
+  row.hidden = false;
+  row.innerHTML = `<span style="color:var(--muted)">Searching for:</span>` + S.aliases.map(a=>
+    `<button type="button" class="alias" data-alias="${esc(a)}" aria-pressed="${S.aliasOn.has(a)}" title="Click to include or exclude this alias">${esc(a)}</button>`).join("")
+    + `<button type="button" class="btn small" id="rerun">Re-run with these</button>`;
+}
+function render(){
+  const base = baseSet();
+  const recs = filtered();
+  updateCounts();
+  $("toolbar").hidden = !S.records.length && !Object.keys(S.saved).length;
+  renderRail(base);
+  const nA = recs.filter(r=>r.tier==="A").length, nB = recs.filter(r=>r.tier==="B").length, nC = recs.length-nA-nB;
+  $("count").innerHTML = `${recs.length} dataset${recs.length===1?"":"s"} <small>${S.showSaved ? "saved in this workspace" : `of ${base.length} found`}</small>`;
+  const pct = n => recs.length ? (100*n/recs.length).toFixed(1)+"%" : "0";
+  $("tierbar").innerHTML = `<i style="width:${pct(nA)};background:var(--tierA)"></i><i style="width:${pct(nB)};background:var(--tierB)"></i><i style="width:${pct(nC)};background:var(--tierC)"></i>`;
+  $("tierbar").title = `Tier A ${nA} · Tier B ${nB} · Tier C ${nC}`;
+
+  const groupsEl = $("groups");
+  if(!recs.length){
+    const busy = Object.values(SRC).some(v=>v.state==="busy");
+    groupsEl.innerHTML = `<div class="empty">${S.showSaved ? (()=>{ const o = savedElsewhere(); return o.length ? `Nothing saved in this workspace yet. Saved datasets are kept per workspace; ${o.map(x=>`<b>${esc(x.m.title||"Untitled workspace")}</b> has ${x.n}`).join(", ")}. <button class="btn small" type="button" data-openws="${esc(o[0].m.id)}">Open ${esc(o[0].m.title||"that workspace")}</button>` : "Nothing saved yet. Star a dataset in the results to keep it here; saved datasets stay across searches in this workspace."; })() : busy ? "Searching repositories…" :
+      base.length ? "No datasets match these filters. Clear a filter on the left." :
+      S.query ? "No datasets found. Try another data type, turn on more aliases, or remove the species limit." :
+      "Enter a gene or topic above and press Search."}</div>`;
+    return;
+  }
+  const sorters = {score:(a,b)=>b.score-a.score||(b.date>a.date?1:-1), date:(a,b)=>(b.date>a.date?1:b.date<a.date?-1:0), n:(a,b)=>b.nSamples-a.nSamples};
+  recs.sort(sorters[S.sortBy]);
+  const keyFn = {
+    tier:r=>"Tier "+r.tier, species:r=>r.species[0]||"Not stated", cell:r=>r.cells[0]||"Cell type not detected",
+    assay:r=>r.assays[0], source:r=>r.source, year:r=>r.year?String(r.year):"Unknown year", none:()=>"All results"
+  }[S.groupBy];
+  const groups = new Map();
+  for(const r of recs){ const k=keyFn(r); if(!groups.has(k)) groups.set(k,[]); groups.get(k).push(r); }
+  let keys = [...groups.keys()];
+  if(S.groupBy==="tier") keys.sort();
+  else if(S.groupBy==="year") keys.sort().reverse();
+  else keys.sort((a,b)=>groups.get(b).length-groups.get(a).length);
+  const tierNote = {"Tier A":"strong evidence: publication, replicates, raw data, target named in samples",
+    "Tier B":"usable, check samples and controls before relying on it", "Tier C":"weak or indirect, verify carefully"};
+  groupsEl.innerHTML = keys.map(k=>`<div class="group"><h2>${S.groupBy==="tier"?`<span class="tier ${k.slice(-1)}">${esc(k)}</span>`:esc(k)}
+     <small>${groups.get(k).length} dataset${groups.get(k).length===1?"":"s"}${S.groupBy==="tier"?" · "+tierNote[k]:""}</small></h2>
+     <div class="list">${groups.get(k).map(card).join("")}</div></div>`).join("");
+}
+function card(r){
+  const re = S.query ? aliasRegex(S.query.terms) : null;
+  const hl = t => { const e = esc(t); if(!re) return e; return e.replace(new RegExp(re.source,"gi"), (m,p,g)=>`${p}<mark>${g}</mark>`); };
+  const links = [];
+  if(r.source==="GEO"){
+    links.push([r.url,"GEO page"]);
+    if(r.hasRaw) links.push([`https://www.ncbi.nlm.nih.gov/Traces/study/?acc=${r.accession}`,"SRA Run Selector"]);
+    if(r.ftp) links.push([r.ftp+"suppl/","Supplementary files"]);
+  } else if(r.source==="ENCODE"){
+    links.push([r.url,"ENCODE experiment"]); links.push([r.url+"#tables","Files and peaks"]);
+  } else links.push([r.url,"ArrayExpress study"]);
+  r.pubmed.slice(0,3).forEach(p=>links.push([`https://pubmed.ncbi.nlm.nih.gov/${p}/`,"PubMed "+p]));
+  const saved = !!S.saved[r.id];
+  const d = r.design;
+  const need = [...d.rel.map(s=>({...s, role:"target"})), ...d.matched.map(s=>({...s, role:"control"}))];
+  const ratio = d.total && r.source!=="ENCODE" ? ` · ${d.relCount} of ${d.total} samples` : "";
+  return `<article class="rcard" data-id="${esc(r.id)}">
+    <div class="top"><a class="acc" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.accession)}</a>
+      <span class="badge">${esc(r.source)}</span>${r.project?`<span class="badge">${esc(r.project)}</span>`:""}
+      ${r.superSeries?`<span class="badge">SuperSeries</span>`:""}</div>
+    <div class="score"><span class="tier ${r.tier}">Tier ${r.tier} · ${r.score}</span>
+      <span class="meter" style="color:var(--tier${r.tier})"><i style="width:${r.score}%"></i></span>
+      <button class="star" data-star="${esc(r.id)}" aria-pressed="${saved}" aria-label="${saved?"Remove from saved":"Save dataset"}">${saved?"★":"☆"}</button></div>
+    <h3 class="title">${hl(r.title)}</h3>
+    <div class="chips">
+      ${r.species.map(s=>`<span class="chip sp"><i>${esc(s)}</i></span>`).join("")}
+      ${r.cells.slice(0,5).map(c=>`<span class="chip cell">${esc(c)}</span>`).join("")}${r.cells.length>5?`<span class="chip cell">+${r.cells.length-5}</span>`:""}
+      ${r.assays.map(a=>`<span class="chip">${esc(a)}</span>`).join("")}
+      <span class="chip f-${d.focus}" title="How much of this study is about your search term">${esc(d.focusLabel)}${esc(ratio)}</span>
+      <span class="chip cx-${d.complexity}" title="${esc(d.factors.join(", ")||"No complicating design factors detected")}">${esc(d.complexity)} design${d.factors.length?": "+esc(d.factors.slice(0,3).join(", "))+(d.factors.length>3?"…":""):""}</span>
+    </div>
+    <div class="meta">
+      ${r.nSamples?`<span>${r.nSamples} sample${r.nSamples===1?"":"s"}</span>`:""}
+      ${r.date?`<span>Released ${esc(r.date)}</span>`:""}
+      ${r.platform?`<span>${esc(r.platform)}</span>`:""}
+      ${r.lab?`<span>${esc(r.lab)}</span>`:""}${r.author?`<span>${esc(r.author.slice(0,60))}</span>`:""}
+      ${r.suppfile?`<span>Files: ${esc(r.suppfile)}</span>`:""}
+      <button class="btn small planBtn" type="button" data-plan="${esc(r.id)}" aria-pressed="${!!S.plan[r.id]}">${S.plan[r.id]?"In download list":"Add to download list"}</button>
+    </div>
+    <details><summary>Details, samples and score breakdown</summary>
+      <div class="detail">
+        <div>${r.summary?`<p>${hl(r.summary.slice(0,1500))}${r.summary.length>1500?"…":""}</p>`:""}
+          ${need.length?`<h4>Samples you need (${d.rel.length} target${d.matched.length?` + ${d.matched.length} control`:""})
+              <button class="linkbtn" data-copy="${esc(need.map(s=>s.acc).join("\n"))}" type="button">copy IDs</button></h4>
+            <ul class="samples need">${need.map(s=>`<li><span class="role ${s.role}">${s.role}</span>${esc(s.acc)}  ${hl(s.title)}</li>`).join("")}</ul>`:""}
+          ${d.factors.length?`<h4>Design factors detected</h4><p class="factors">${d.factors.map(esc).join(" · ")}</p>`:""}
+          ${r.samples.length?(need.length?`<details class="all"><summary>All ${r.samples.length} samples</summary>`:`<h4>Samples (${r.samples.length})</h4>`)
+            +`<ul class="samples">${r.samples.slice(0,300).map(s=>`<li>${esc(s.acc)}  ${hl(s.title)}</li>`).join("")}</ul>`+(need.length?`</details>`:""):""}
+        </div>
+        <div><h4>Why Tier ${r.tier} (${r.score}/100)</h4>
+          <ul class="why">${r.why.map(([l,p])=>`<li class="${p<0?"neg":""}"><span>${esc(l)}</span><b>${p>0?"+":""}${p}</b></li>`).join("")}</ul>
+          <h4>Open</h4><div class="links">${links.map(([u,l])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a>`).join("")}</div>
+        </div>
+      </div>
+    </details>
+  </article>`;
+}
+const openFacets = new Set();
+function renderRail(base){
+  if(!base.length){ $("rail").innerHTML = legendHTML(); return; }
+  const scrollTop = $("rail").scrollTop;
+  let html = "";
+  for(const f of FACETS){
+    const counts = new Map();
+    const pool = base.filter(r=>passes(r, f.key));
+    for(const r of base) for(const v of f.get(r)) if(!counts.has(v)) counts.set(v,0);
+    for(const r of pool) for(const v of uniq(f.get(r))) counts.set(v, counts.get(v)+1);
+    let vals = [...counts.keys()];
+    vals.sort(f.order ? (a,b)=>f.order.indexOf(a)-f.order.indexOf(b) : (a,b)=>counts.get(b)-counts.get(a)||a.localeCompare(b));
+    if(!vals.length) continue;
+    const sel = S.sel[f.key] || new Set();
+    const limit = openFacets.has(f.key) ? vals.length : 8;
+    html += `<div class="facet"><h3>${esc(f.label)}${sel.size?`<button data-clear="${f.key}">clear</button>`:""}</h3>`
+      + vals.slice(0,limit).map(v=>{ const n=counts.get(v); const id=`f_${f.key}_${btoa(unescape(encodeURIComponent(v))).replace(/[^a-z0-9]/gi,"")}`;
+        return `<label class="opt ${n?"":"zero"}" for="${id}"><input type="checkbox" id="${id}" data-facet="${f.key}" data-val="${esc(v)}" ${sel.has(v)?"checked":""}>
+          <span class="lbl" title="${esc(v)}">${f.key==="species"&&v!=="Not stated"?`<i>${esc(v)}</i>`:esc(v)}</span><span class="n">${n}</span></label>`; }).join("")
+      + (vals.length>8?`<button class="more" data-more="${f.key}">${openFacets.has(f.key)?"Show fewer":`Show all ${vals.length}`}</button>`:"")
+      + `</div>`;
+  }
+  html += `<div class="facet"><h3>Release year</h3><div class="yr">
+      <input id="yMin" type="number" inputmode="numeric" placeholder="from" value="${S.yearMin||""}" aria-label="From year">–
+      <input id="yMax" type="number" inputmode="numeric" placeholder="to" value="${S.yearMax||""}" aria-label="To year"></div></div>`;
+  html += legendHTML();
+  const focused = document.activeElement && document.activeElement.id;
+  $("rail").innerHTML = html;
+  $("rail").scrollTop = scrollTop;
+  if(focused && $(focused) && $("rail").contains($(focused))) $(focused).focus();
+}
+function legendHTML(){
+  return `<div class="facet legend"><h3>How tiers are scored</h3>
+    <span>Points for a linked publication (+25), ENCODE QC (+35), replicate samples on your target (+15), a matched input/IgG control (+8), raw reads (+15), processed files (+10), a study dedicated to your target (+10), release in the last 8 years (+5).</span>
+    <span>Points off when your target is a minor part of a bigger study (−15), only mentioned in the text (−5), the design is complex (−10), ChIP has no control (−5), or ENCODE audits flag problems.</span>
+    <span><b>Tier A</b> ≥ 70 · <b>Tier B</b> 45–69 · <b>Tier C</b> &lt; 45</span>
+    <span>The score is a triage aid. Always open the samples and check antibody, controls and replicates.</span></div>`;
+}
+function renderPortals(){
+  const {q, terms} = S.query; const t = encodeURIComponent(q);
+  const L = [
+    [`https://www.ncbi.nlm.nih.gov/gds/?term=${encodeURIComponent(terms.join(" OR "))}`,"GEO website"],
+    [`https://www.encodeproject.org/search/?type=Experiment&searchTerm=${t}`,"ENCODE portal"],
+    ["https://chip-atlas.org/peak_browser","ChIP-Atlas (reprocessed ChIP / ATAC)"],
+    ["http://cistrome.org/db/","Cistrome DB"],
+    [`https://www.ebi.ac.uk/ena/browser/text-search?query=${t}`,"ENA"],
+    [`https://singlecell.broadinstitute.org/single_cell?type=study&terms=${t}`,"Single Cell Portal"],
+    ["https://cellxgene.cziscience.com/datasets","CZ CELLxGENE"],
+    ["https://data.humancellatlas.org/explore/projects","Human Cell Atlas"],
+    [`https://www.ncbi.nlm.nih.gov/sra/?term=${encodeURIComponent(terms.join(" OR "))}`,"SRA"]
+  ];
+  $("portalLinks").innerHTML = L.map(([u,l])=>`<a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)}</a>`).join("");
+  $("portals").hidden = false;
+}
+
+/* ---------- download list ---------- */
+S.geoSoft = null; S.geoList = null; S.enaOK = null;   // which lookups this browser is allowed to make
+const TYPE_LABEL = {signal:"Signal tracks (bigWig, bedGraph, wig)", peaks:"Peak calls (narrowPeak, broadPeak, BED)", other:"Other processed files (counts, tables)", raw:"Raw reads (SRA runs)"};
+function storePlan(){ updateCounts(); autosave(); }
+function classifyFile(name){
+  const n = name.toLowerCase().replace(/\.(gz|bz2|zip)$/,"");
+  if(/_raw\.tar$|filelist\.txt$/.test(n)) return "skip";
+  if(/\.(bw|bigwig|bedgraph|bdg|wig|tdf)$/.test(n)) return "signal";
+  if(/\.(narrowpeak|broadpeak|gappedpeak|bb|bigbed)$|peak.*\.(bed|txt|xls)$|summit.*\.bed$|\.bed$/.test(n)) return "peaks";
+  return "other";
+}
+function detectBuild(t){
+  t = (t||"").toLowerCase();
+  const rules = [["mm39",/mm39|grcm39/],["mm10",/mm10|grcm38/],["mm9",/mm9|ncbim37|ncbi37/],["hg38",/hg38|grch38/],["hg19",/hg19|grch37/],["hg18",/hg18|ncbi36/],
+    ["danRer11",/danrer11|grcz11/],["danRer10",/danrer10|grcz10/],["danRer7",/danrer7|zv9/],["rn7",/rn7|mratbn7/],["rn6",/rn6|rnor_?6/],
+    ["galGal6",/galgal6|grcg6a/],["galGal5",/galgal5/],["galGal4",/galgal4/],["susScr11",/susscr11|sscrofa11/],["bosTau9",/bostau9|ars-ucd1\.2/],
+    ["dm6",/dm6|bdgp6/],["dm3",/dm3|bdgp5/],["ce11",/ce11|wbcel235/],["xenLae2",/xenlae2/]];
+  for(const [db,re] of rules) if(re.test(t)) return db;
+  return "";
+}
+function parseSoft(t){
+  const L = t.split(/\r?\n/);
+  const get = re => L.filter(l=>re.test(l)).map(l=>l.replace(/^[^=]*=\s*/,"").trim());
+  return { title: get(/^!Sample_title/)[0]||"",
+    files: get(/^!Sample_supplementary_file/).filter(x=>x && x!=="NONE").map(x=>x.replace(/^ftp:\/\//,"https://")),
+    build: detectBuild(get(/^!Sample_(data_processing|description|extract_protocol)/).join(" ")) };
+}
+const geoDir = (acc, kind) => { const n = acc.slice(3); return `https://ftp.ncbi.nlm.nih.gov/geo/${kind}/${acc.slice(0,3)}${n.length>3?n.slice(0,-3):""}nnn/${acc}/suppl/`; };
+const encAsm = a => ({GRCh38:"hg38", hg19:"hg19", GRCh37:"hg19", mm10:"mm10", GRCm38:"mm10", GRCm39:"mm39", mm9:"mm9"}[a] || a || "");
+function parseCSV(t){
+  const rows = []; let row = [], f = "", q = false;
+  for(let i=0;i<t.length;i++){ const c=t[i];
+    if(q){ if(c==='"'){ if(t[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=c; }
+    else if(c==='"') q=true; else if(c===','){ row.push(f); f=""; } else if(c==='\n'){ row.push(f); rows.push(row); row=[]; f=""; } else if(c!=='\r') f+=c; }
+  if(f||row.length){ row.push(f); rows.push(row); }
+  const head = rows.shift()||[]; return rows.filter(r=>r.length>1).map(r=>Object.fromEntries(head.map((k,i)=>[k,r[i]])));
+}
+
+function planAdd(r, quiet){
+  if(S.plan[r.id]) return false;
+  const rec = {...r, savedTerms: r.savedTerms || S.query?.terms || [], savedQuery: r.savedQuery || S.query?.q || ""};
+  const pick = {};
+  if(r.source==="GEO"){ r.design.rel.forEach(s=>pick[s.acc]="target"); r.design.matched.forEach(s=>pick[s.acc]="control"); }
+  S.plan[r.id] = {rec, pick, geo:{}, raw:{}, enc:null, encState:null};
+  storePlan();
+  if(r.source==="ENCODE") resolveEncode(r.id);
+  if(!quiet) toast(`${r.accession} added to the download list`);
+  return true;
+}
+function planRemove(id){ delete S.plan[id]; storePlan(); }
+function refreshPlanButtons(){
+  for(const b of document.querySelectorAll("[data-plan]")){
+    const on = !!S.plan[b.dataset.plan];
+    b.setAttribute("aria-pressed", on); b.textContent = on ? "In download list" : "Add to download list";
+  }
+}
+const rerenderPlan = () => { if(currentTab==="list" || planDrawerOpen()) renderPlan(); };
+
+async function resolveEncode(id){
+  const e = S.plan[id]; if(!e) return;
+  e.encState = "loading"; rerenderPlan();
+  try{
+    const u = new URL("https://www.encodeproject.org/search/");
+    const p = {type:"File", dataset:`/experiments/${e.rec.accession}/`, status:"released", format:"json", limit:"all"};
+    for(const [k,v] of Object.entries(p)) u.searchParams.set(k,v);
+    for(const f of ["accession","href","file_format","file_type","output_type","assembly","biological_replicates","preferred_default","file_size","md5sum"]) u.searchParams.append("field",f);
+    const j = await getJSON(u, {headers:{Accept:"application/json"}});
+    const files = (j["@graph"]||[]).filter(f=>["bigWig","bigBed","bed"].includes(f.file_format)).map(f=>({
+      acc:f.accession, url:"https://www.encodeproject.org"+f.href, name:f.href.split("/").pop(), format:f.file_format, ftype:f.file_type||f.file_format,
+      otype:f.output_type||"", asm:f.assembly||"", reps:(f.biological_replicates||[]).join(","), pref:!!f.preferred_default, size:f.file_size||0, md5:f.md5sum||"",
+      kind: f.file_format==="bigWig" ? "signal" : "peaks"}));
+    const anyPref = files.some(f=>f.pref);
+    const good = /fold change over control|IDR thresholded peaks|conservative IDR|pseudoreplicated peaks|signal p-value/i;
+    files.forEach(f=>f.checked = anyPref ? f.pref : good.test(f.otype));
+    files.sort((a,b)=>(b.checked-a.checked)||a.kind.localeCompare(b.kind)||a.otype.localeCompare(b.otype));
+    if(S.plan[id]){ e.enc = files; e.encState = "ok"; }
+  }catch(err){ if(S.plan[id]) e.encState = "err"; }
+  storePlan(); rerenderPlan();
+}
+/* GEO sample files: read the GEO record; if the browser blocks that, read the sample's file folder;
+   if that is blocked too, give the folder URL. */
+async function lookupGeoSample(acc){
+  if(S.geoSoft!==false){
+    try{
+      const res = await fetch(`https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${acc}&targ=self&form=text&view=brief`);
+      const txt = res.ok ? await res.text() : "";
+      if(!/^\^SAMPLE/m.test(txt)) throw new Error("no record");
+      S.geoSoft = true; const s = parseSoft(txt);
+      return {state:"ok", files:s.files, build:s.build};
+    }catch(e){ S.geoSoft = false; }
+  }
+  if(S.geoList!==false){
+    try{
+      const dir = geoDir(acc,"samples"), res = await fetch(dir);
+      if(res.status===404){ S.geoList = true; return {state:"ok", files:[], build:""}; }   // no sample-level folder
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const html = await res.text();
+      if(!/Index of|<a\s+href/i.test(html)) throw new Error("not a folder listing");
+      const names = [...html.matchAll(/href="([^"?/][^"]*)"/g)].map(m=>m[1]).filter(n=>!n.endsWith("/") && !/^(\.\.|https?:)/.test(n));
+      S.geoList = true;
+      return {state:"ok", files:uniq(names).map(n=>dir+n), build:""};
+    }catch(e){ S.geoList = false; }
+  }
+  return {state:"folder", files:[], build:""};
+}
+async function lookupRuns(acc){
+  const s = await ncbi("esearch.fcgi", {db:"sra", term:acc, retmax:"50"});
+  const ids = s?.esearchresult?.idlist || [];
+  if(!ids.length) return {state:"none", runs:[]};
+  const csv = await ncbi("efetch.fcgi", {db:"sra", id:ids.join(","), rettype:"runinfo", retmode:"text"});
+  const runs = parseCSV(csv).filter(r=>/^[SED]RR\d+$/.test(r.Run||"")).map(r=>({run:r.Run, layout:r.LibraryLayout||"", sizeMB:+r.size_MB||0, srx:r.Experiment||"", fastq:[]}));
+  if(S.enaOK!==false) for(const r of runs){
+    try{
+      const res = await fetch(`https://www.ebi.ac.uk/ena/portal/api/filereport?accession=${r.run}&result=read_run&fields=fastq_ftp,fastq_bytes,fastq_md5&format=tsv`);
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      const [head, line] = (await res.text()).trim().split("\n"); const H = head.split("\t"), V = (line||"").split("\t");
+      const col = k => (V[H.indexOf(k)]||"").split(";").filter(Boolean);
+      const sizes = col("fastq_bytes"), md5 = col("fastq_md5");
+      r.fastq = col("fastq_ftp").map((u,i)=>({url:"https://"+u.replace(/^(ftp|https?):\/\//,""), bytes:+sizes[i]||0, md5:md5[i]||""}));
+      S.enaOK = true;
+    }catch(e){ S.enaOK = false; break; }
+  }
+  return {state:"ok", runs};
+}
+let resolving = false;
+async function resolvePlan(){
+  if(resolving) return; resolving = true;
+  try{
+    for(const e of Object.values(S.plan)){
+      if(e.rec.source!=="GEO") continue;
+      for(const acc of Object.keys(e.pick)){
+        if(!S.plan[e.rec.id]) break;
+        if(!e.geo[acc]){ e.geo[acc] = {state:"loading"}; rerenderPlan(); e.geo[acc] = await lookupGeoSample(acc); storePlan(); rerenderPlan(); await sleep(250); }
+        if(S.planTypes.raw && !e.raw[acc]){
+          e.raw[acc] = {state:"loading"}; rerenderPlan();
+          try{ e.raw[acc] = await lookupRuns(acc); }catch(err){ e.raw[acc] = {state:"err", runs:[]}; }
+          storePlan(); rerenderPlan();
+        }
+      }
+    }
+  } finally { resolving = false; }
+  // picks made while we were busy
+  if(Object.values(S.plan).some(e=>e.rec.source==="GEO" && Object.keys(e.pick).some(a=>!e.geo[a] || (S.planTypes.raw && !e.raw[a])))) resolvePlan();
+}
+
+/* one row per file to fetch */
+function planRows(){
+  const rows = [], T = S.planTypes;
+  for(const e of Object.values(S.plan)){
+    const r = e.rec, sp = r.species[0]||"";
+    if(r.source==="GEO"){
+      const titles = Object.fromEntries(r.samples.map(s=>[s.acc,s.title]));
+      for(const [acc, role] of Object.entries(e.pick)){
+        const g = e.geo[acc] || {}, base = {dataset:r.accession, sample:acc, role, label:titles[acc]||"", species:sp, genome:g.build||""};
+        if(g.state==="ok"){
+          const fs = g.files.map(u=>({u, n:u.split("/").pop(), k:classifyFile(u.split("/").pop())})).filter(f=>f.k!=="skip");
+          fs.filter(f=>T[f.k]).forEach(f=>rows.push({...base, type:f.k, file:f.n, url:f.u, size:"", notes:""}));
+          if(!fs.length && (T.signal||T.peaks||T.other))
+            rows.push({...base, type:"series folder", file:"", url:geoDir(r.accession,"series"), size:"", notes:"no sample-level files; processed data is at series level"});
+        } else if(T.signal||T.peaks||T.other)
+          rows.push({...base, type:"sample folder", file:"", url:geoDir(acc,"samples"), size:"", notes:"file names not read by the app; download the folder"});
+        if(T.raw){
+          const rw = e.raw[acc];
+          if(rw?.state==="ok") rw.runs.forEach(x=>{
+            const note = `${x.layout||"layout ?"}${x.srx?" · "+x.srx:""}`;
+            if(x.fastq.length) x.fastq.forEach(f=>rows.push({...base, type:"raw", file:x.run, url:f.url, size:f.bytes||"", notes:`${note} · ENA FASTQ${f.md5?" · md5 "+f.md5:""}`}));
+            else rows.push({...base, type:"raw", file:x.run, url:"", size:x.sizeMB?Math.round(x.sizeMB*1e6):"", notes:`${note} · SRA run (SRA Toolkit)`});
+          });
+          else rows.push({...base, type:"raw", file:"", url:`https://www.ncbi.nlm.nih.gov/sra?term=${acc}`, size:"", notes: rw?.state==="none" ? "no SRA runs found for this sample" : "SRA runs not looked up; see SRA page"});
+        }
+      }
+    } else if(r.source==="ENCODE"){
+      if(e.enc) e.enc.filter(f=>f.checked && T[f.kind]).forEach(f=>rows.push({dataset:r.accession, sample:f.acc, role:"target", label:`${f.otype} (rep ${f.reps})`, species:sp,
+        genome:encAsm(f.asm), type:f.kind, file:f.name, url:f.url, size:f.size||"", notes:f.md5?"md5 "+f.md5:""}));
+      else rows.push({dataset:r.accession, sample:"", role:"target", label:r.title, species:sp, genome:"", type:"experiment page", file:"", url:r.url, size:"", notes:"ENCODE file list not loaded; pick files on the page"});
+    } else rows.push({dataset:r.accession, sample:"", role:"study", label:r.title, species:sp, genome:"", type:"study page", file:"", url:r.url, size:"", notes:"ArrayExpress: files are under the study's Files tab"});
+  }
+  return rows;
+}
+const clean = s => String(s??"").replace(/[\t\r\n]+/g," ").trim();
+function planTSV(){
+  const rows = planRows();
+  const has = t => rows.some(r=>r.type===t);
+  const queries = uniq(Object.values(S.plan).map(e=>e.rec.savedQuery)).join(", ");
+  const head = [
+    "# Data Seeker file list",
+    `# created ${new Date().toISOString().slice(0,10)} · searches: ${queries||"n/a"} · ${Object.keys(S.plan).length} datasets · ${rows.length} rows`,
+    "#",
+    "# How to get each row (type column):",
+    "#   signal / peaks / other   direct HTTPS file, no login: wget -c <url>",
+  ];
+  if(has("sample folder")) head.push("#   sample folder            GEO folder for one sample (app could not read the file names): wget -r -np -nd -e robots=off <url>");
+  if(has("series folder")) head.push("#   series folder            GEO series-level files (often one archive for all samples); check the folder before downloading");
+  if(rows.some(r=>r.type==="raw" && r.url.includes("ebi.ac.uk")) || rows.some(r=>r.type==="raw" && /fastq/i.test(r.url)))
+    head.push("#   raw, url filled          FASTQ from ENA, no SRA Toolkit needed: wget -c <url>  (paired-end runs have _1 and _2 files)");
+  if(rows.some(r=>r.type==="raw"))
+    head.push("#   raw, file = SRR...       SRA run accession. With SRA Toolkit: prefetch <SRR> then fastq-dump --split-files --gzip <SRR>");
+  if(has("experiment page") || has("study page")) head.push("#   experiment/study page    pick files on the linked page");
+  head.push("#",
+    "# genome = build stated by GEO or ENCODE (empty = not stated; check the GEO sample page before overlaying tracks).",
+    "# size is in bytes where the repository reports it.",
+    ["dataset","sample","role","label","species","genome","type","file","url","size_bytes","notes"].join("\t"));
+  return head.join("\n")+"\n"+rows.map(r=>[r.dataset,r.sample,r.role,r.label,r.species,r.genome,r.type,r.file,r.url,r.size,r.notes].map(clean).join("\t")).join("\n")+"\n";
+}
+const fmtSize = b => !b ? "" : b>1e9 ? (b/1e9).toFixed(1)+" GB" : b>1e6 ? (b/1e6).toFixed(0)+" MB" : (b/1e3).toFixed(0)+" kB";
+
+function renderPlan(){
+  const entries = Object.values(S.plan);
+  const rows = planRows();
+  const nSamples = entries.reduce((n,e)=>n+Object.keys(e.pick).length,0);
+  $("planCount").textContent = $("planCountDrawer").textContent = `${entries.length} dataset${entries.length===1?"":"s"} · ${nSamples} GEO sample${nSamples===1?"":"s"} · ${rows.length} row${rows.length===1?"":"s"}`;
+  if(!entries.length){
+    $("planBody").innerHTML = `<div class="empty">Your download list is empty. Press <b>Add to download list</b> on a result, or <b>Add shown to download list</b> on the Search tab to add everything in view. Datasets you add stay here between searches.</div>`;
+    return;
+  }
+  const direct = rows.filter(r=>r.url && /^(signal|peaks|other|raw)$/.test(r.type)).length;
+  const folders = rows.filter(r=>/folder/.test(r.type)).length;
+  const srr = uniq(rows.filter(r=>r.type==="raw" && r.file).map(r=>r.file));
+  const busy = entries.some(e=>Object.values(e.geo).some(g=>g.state==="loading") || Object.values(e.raw).some(g=>g.state==="loading") || e.encState==="loading");
+  const total = rows.reduce((s,r)=>s+(+r.size||0),0);
+  const types = Object.entries(TYPE_LABEL).map(([k,l])=>`<label><input type="checkbox" data-ptype="${k}" ${S.planTypes[k]?"checked":""}> ${esc(l)}</label>`).join("");
+  let html = `<section class="pbox"><h3>What to fetch</h3><div class="types">${types}</div></section>
+    <section class="pbox"><h3>File list</h3>
+      <p>${busy?"Looking up files… ":""}<b>${direct}</b> direct file URL${direct===1?"":"s"}${folders?`, <b>${folders}</b> folder${folders===1?"":"s"} where GEO didn't let the app read file names`:""}${srr.length?`, <b>${srr.length}</b> SRA run${srr.length===1?"":"s"}`:""}${total?` · about ${fmtSize(total)} known`:""}.
+        The saved list has one row per file with its URL, sample, role, genome build and size, and a header saying what each kind of row needs.</p>
+      <div class="pbtns">
+        <button class="btn small primary" id="planSaveTsv" type="button">Save file list (.tsv)</button>
+        <button class="btn small" id="planCopyTsv" type="button">Copy file list</button>
+        <button class="btn small" id="planCopyUrls" type="button" ${rows.some(r=>r.url)?"":"disabled"}>Copy URLs only</button>
+        ${srr.length?`<button class="btn small" id="planCopySrr" type="button">Copy SRR accessions (${srr.length})</button>`:""}
+        <button class="btn small" id="planReadme" type="button">Provenance (README.txt)</button>
+        <button class="btn small" id="planClear" type="button">Clear list</button>
+      </div>
+    </section>
+    <div class="pdsWrap"><h3>Datasets</h3>`;
+  for(const e of entries){
+    const r = e.rec;
+    html += `<div class="pds"><div class="pdsHead"><a class="acc" href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.accession)}</a>
+      <span class="badge">${esc(r.source)}</span>${r.species.map(s=>`<i>${esc(s)}</i>`).join(", ")}<span class="tier ${r.tier}" style="padding:1px 7px;font-size:11.5px">Tier ${r.tier}</span>
+      <button class="btn small rm" type="button" data-premove="${esc(r.id)}">Remove</button></div>
+      <div class="pdsTitle">${esc(r.title)}</div>`;
+    if(r.source==="GEO"){
+      const row = (s, role) => {
+        const on = !!e.pick[s.acc], g = e.geo[s.acc], rw = e.raw[s.acc];
+        let files = "";
+        if(on && g){
+          if(g.state==="loading") files = `<span class="fchip">looking up files…</span>`;
+          else if(g.state==="folder") files = `<a class="fchip" href="${esc(geoDir(s.acc,"samples"))}" target="_blank" rel="noopener">sample folder ↗</a>`;
+          else { const fs = g.files.map(u=>({u,n:u.split("/").pop()})).map(f=>({...f,k:classifyFile(f.n)})).filter(f=>f.k!=="skip");
+            files = fs.length ? fs.map(f=>`<a class="fchip ${f.k}${S.planTypes[f.k]?"":" off"}" href="${esc(f.u)}" target="_blank" rel="noopener" title="${esc(f.u)}">${esc(f.n)}</a>`).join("")
+              : `<a class="fchip" href="${esc(geoDir(r.accession,"series"))}" target="_blank" rel="noopener">no sample files · series folder ↗</a>`; }
+          if(g.build) files += `<span class="fchip">${esc(g.build)}</span>`;
+        }
+        if(on && S.planTypes.raw && rw){
+          if(rw.state==="loading") files += `<span class="fchip">finding SRA runs…</span>`;
+          else if(rw.state==="ok") files += rw.runs.map(x=>`<span class="fchip raw">${esc(x.run)}${x.layout?" · "+esc(x.layout.toLowerCase()):""}${x.sizeMB?" · "+fmtSize(x.sizeMB*1e6):""}</span>`).join("");
+          else files += `<span class="fchip">no SRA runs found</span>`;
+        }
+        return `<label class="prow"><input type="checkbox" data-pick="${esc(r.id)}" data-acc="${esc(s.acc)}" data-role="${role}" ${on?"checked":""}>
+          <span class="role ${role}">${role}</span><span class="ptitle"><code>${esc(s.acc)}</code> ${esc(s.title)}</span>
+          ${files?`<span class="pfiles">${files}</span>`:""}</label>`;
+      };
+      const d = r.design, keyset = new Set([...d.rel, ...d.matched].map(s=>s.acc));
+      html += d.rel.map(s=>row(s,"target")).join("") + d.matched.map(s=>row(s,"control")).join("");
+      const others = r.samples.filter(s=>!keyset.has(s.acc));
+      if(!d.rel.length) html += `<p class="pwarn">No sample names match your search term. Tick the samples you need below.</p>`;
+      if(others.length) html += `<details ${!d.rel.length||others.some(s=>e.pick[s.acc])?"open":""}><summary>Other samples in this study (${others.length})</summary>
+        ${others.map(s=>row(s, CONTROL_RE.test(sp(s.title))?"control":"sample")).join("")}</details>`;
+      if(!r.samples.length) html += `<p class="pwarn">No sample list available for this study.</p>`;
+    } else if(r.source==="ENCODE"){
+      if(e.encState==="loading" || !e.encState) html += `<p class="pnote">Loading ENCODE file list…</p>`;
+      else if(e.encState==="err") html += `<p class="pwarn">Couldn't load the ENCODE file list. The file list will link the experiment page instead.</p>`;
+      else if(!e.enc.length) html += `<p class="pwarn">No bigWig or peak files released for this experiment.</p>`;
+      else html += e.enc.map((f,i)=>`<label class="prow"><input type="checkbox" data-encf="${esc(r.id)}" data-i="${i}" ${f.checked?"checked":""}>
+          <span class="role ${f.kind==="signal"?"target":""}">${f.kind}</span>
+          <span class="ptitle"><code>${esc(f.acc)}</code> ${esc(f.ftype)} · ${esc(f.otype)} · ${esc(f.asm)}${f.reps?` · rep ${esc(f.reps)}`:""}${f.size?` · ${fmtSize(f.size)}`:""}${f.pref?` <span class="fchip signal">ENCODE default</span>`:""}</span></label>`).join("");
+    } else html += `<p class="pnote">ArrayExpress: the file list links the study page; its files are under the Files tab.</p>`;
+    html += `</div>`;
+  }
+  $("planBody").innerHTML = html + `</div>`;
+}
+function wirePlan(){
+  $("planShownBtn").addEventListener("click", ()=>{ let n=0; filtered().forEach(r=>{ if(planAdd(r,true)) n++; }); refreshPlanButtons(); autosave(); toast(n?`Added ${n} dataset${n===1?"":"s"} to the download list`:"Everything shown is already in the list"); });
+  $("planBody").addEventListener("change", e=>{
+    const t = e.target;
+    if(t.dataset.ptype){ S.planTypes[t.dataset.ptype] = t.checked; storePlan(); renderPlan(); resolvePlan(); return; }
+    if(t.dataset.pick){ const en = S.plan[t.dataset.pick]; if(!en) return;
+      if(t.checked) en.pick[t.dataset.acc] = t.dataset.role==="sample" ? "target" : t.dataset.role; else delete en.pick[t.dataset.acc];
+      storePlan(); renderPlan(); resolvePlan(); return; }
+    if(t.dataset.encf){ const en = S.plan[t.dataset.encf]; if(!en||!en.enc) return; en.enc[+t.dataset.i].checked = t.checked; storePlan(); renderPlan(); }
+  });
+  $("planBody").addEventListener("click", async e=>{
+    const rm = e.target.closest("[data-premove]"); if(rm){ planRemove(rm.dataset.premove); renderPlan(); refreshPlanButtons(); return; }
+    const id = e.target.id;
+    const copy = async (txt, ok) => { try{ await navigator.clipboard.writeText(txt); toast(ok); }catch(err){ toast("Copy blocked by browser"); } };
+    const stamp = new Date().toISOString().slice(0,10);
+    if(id==="planSaveTsv") saveAs(`${wsBase()}_files.tsv`, planTSV(), "text/tab-separated-values", TSV_TYPES);
+    if(id==="planReadme") offer(`${wsBase()}_README.txt`, readme(), "text/plain");
+    if(id==="planCopyTsv") copy(planTSV(), "File list copied");
+    if(id==="planCopyUrls") copy(uniq(planRows().map(r=>r.url).filter(Boolean)).join("\n")+"\n", "URLs copied");
+    if(id==="planCopySrr") copy(uniq(planRows().filter(r=>r.type==="raw"&&r.file).map(r=>r.file)).join("\n")+"\n", "SRR accessions copied");
+    if(id==="planClear"){
+      if(e.target.dataset.confirm){ S.plan = {}; storePlan(); renderPlan(); refreshPlanButtons(); toast("Download list cleared"); }
+      else { e.target.dataset.confirm = "1"; e.target.textContent = "Press again to clear"; setTimeout(()=>{ if(e.target.isConnected){ delete e.target.dataset.confirm; e.target.textContent="Clear list"; } }, 3000); }
+    }
+  });
+}
+
+/* ---------- export ---------- */
+function toCSV(recs){
+  const cols = [["accession",r=>r.accession],["repository",r=>r.source],["tier",r=>r.tier],["score",r=>r.score],
+    ["title",r=>r.title],["species",r=>r.species.join("; ")],["cell_line_or_tissue",r=>r.cells.join("; ")],
+    ["assays",r=>r.assays.join("; ")],["study_focus",r=>r.design.focusLabel],["target_samples",r=>r.design.relCount],
+    ["design_complexity",r=>r.design.complexity],["design_factors",r=>r.design.factors.join("; ")],
+    ["samples_you_need",r=>[...r.design.rel,...r.design.matched].map(s=>s.acc).join("; ")],["n_samples",r=>r.nSamples],
+
+    ["release_date",r=>r.date],["pubmed_ids",r=>r.pubmed.join("; ")],["raw_reads",r=>r.hasRaw?"yes":"no"],
+    ["processed_files",r=>r.suppfile||(r.processed?"yes":"no")],["url",r=>r.url]];
+  const q = v => { const s=String(v??""); return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s; };
+  return [cols.map(c=>c[0]).join(","), ...recs.map(r=>cols.map(([,f])=>q(f(r))).join(","))].join("\n");
+}
+
+/* ---------- saved tab ---------- */
+function upgradeSaved(){   // datasets saved by older versions lack the study-design fields
+  for(const r of Object.values(S.saved)){
+    if(!r || r.design) continue;
+    r.samples = r.samples||[]; r.cells = r.cells||[]; r.species = r.species||[]; r.assays = r.assays||["Other"]; r.pubmed = r.pubmed||[];
+    try{ scoreRecord(r, aliasRegex(r.savedTerms||[])); }catch(e){ delete S.saved[r.id]; }
+  }
+  for(const e of Object.values(S.plan)){
+    const r = e && e.rec; if(!r || r.design) continue;
+    r.samples = r.samples||[]; r.cells = r.cells||[]; r.species = r.species||[]; r.assays = r.assays||["Other"]; r.pubmed = r.pubmed||[];
+    try{ scoreRecord(r, aliasRegex(r.savedTerms||[])); }catch(err){ delete S.plan[r.id]; }
+  }
+}
+/* when this workspace has nothing saved, say which other workspaces in this browser do */
+function savedElsewhere(){
+  try{
+    return listDocs().filter(m => !DOC || m.id!==DOC.id).map(m => ({m, n:Object.keys((readDoc(m.id)?.ws?.state?.saved)||{}).length})).filter(x => x.n);
+  }catch(e){ return []; }
+}
+function setView(){ S.showSaved = false; render(); }
+/* Saved datasets side panel (header button) */
+const savedDrawerOpen = () => !$("savedDrawer").hidden;
+function renderSaved(){
+  const list = Object.values(S.saved).sort((a,b)=>(b.savedAt||"").localeCompare(a.savedAt||"")||b.score-a.score);
+  $("savedCount").textContent = `${list.length} dataset${list.length===1?"":"s"} in this workspace, kept across searches`;
+  if(list.length){
+    $("savedList").innerHTML = list.map(r=>`${r.savedQuery?`<p class="savedFrom">Saved from “${esc(r.savedQuery)}”${r.savedAt?` on ${esc(r.savedAt)}`:""}</p>`:""}${card(r)}`).join("");
+    return;
+  }
+  const o = savedElsewhere();
+  $("savedList").innerHTML = `<div class="empty">${o.length
+    ? `Nothing saved in this workspace yet. Saved datasets are kept per workspace: ${o.map(x=>`<b>${esc(x.m.title||"Untitled workspace")}</b> has ${x.n}`).join(", ")}.<div class="row" style="margin-top:10px">${o.slice(0,3).map(x=>`<button class="btn small" type="button" data-openws="${esc(x.m.id)}">Open ${esc(x.m.title||"that workspace")}</button>`).join("")}</div>`
+    : "Nothing saved yet. Star a dataset in the results to keep it here."}</div>`;
+}
+function openSavedDrawer(){
+  closePlanDrawer();
+  renderSaved(); $("savedDrawer").hidden = false; $("scrim").hidden = false; $("btnSavedHdr").setAttribute("aria-expanded","true"); $("btnSavedClose").focus();
+}
+function closeSavedDrawer(){
+  if(!savedDrawerOpen()) return;
+  $("savedDrawer").hidden = true; $("btnSavedHdr").setAttribute("aria-expanded","false");
+  if(!planDrawerOpen()) $("scrim").hidden = true;
+}
+function updateCounts(){
+  const n = Object.keys(S.plan).length; $("planN").textContent = n;
+  $("savedHdrN").textContent = Object.keys(S.saved).length;
+  const t = S.project.title, ns = Object.keys(S.saved).length;
+  $("wsSummary").textContent = `${t ? t + " · " : ""}${ns} saved · ${n} on download list${DOC && DOC.fileName ? " · " + DOC.fileName : ""}`;
+  $("btnListCount").title = `${n} dataset${n===1?"":"s"} on the download list. Click to show it in a side panel`;
+}
+
+/* ---------- favicon + full screen ---------- */
+$('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(ICON_SVG);
+$('btnFullscreen').innerHTML = ICON_SVG.replace('<svg ', '<svg aria-hidden="true" ');
+$('btnFullscreen').addEventListener('click', () => {
+  const d=document, el=d.documentElement, on=d.fullscreenElement||d.webkitFullscreenElement;
+  try{
+    const r = on ? (d.exitFullscreen||d.webkitExitFullscreen).call(d) : (el.requestFullscreen||el.webkitRequestFullscreen).call(el);
+    if(r && r.catch) r.catch(()=>toast("Full screen isn't available here. Open the downloaded file instead."));
+  }catch(e){ toast("Full screen isn't available here. Open the downloaded file instead."); }
+});
+['fullscreenchange','webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => {
+  const on = !!(document.fullscreenElement||document.webkitFullscreenElement), b=$('btnFullscreen');
+  b.title = on ? 'Leave full screen' : 'Full screen'; b.setAttribute('aria-label', b.title); syncHdr();
+}));
+
+/* ---------- tabs ---------- */
+const TAB_KEY = ABOUT.slug + '.tab';
+const TABS = [...document.querySelectorAll('nav.tabs button')].map(b => b.dataset.tab);
+function showTab(t){
+  if(!TABS.includes(t)) t = TABS[0];
+  currentTab = t;
+  TABS.forEach(k => { $('tab-'+k).hidden = k!==t; });
+  document.querySelectorAll('nav.tabs button').forEach(b => { const on=b.dataset.tab===t; b.setAttribute('aria-selected', on); b.tabIndex = on?0:-1; });
+  try{ history.replaceState(null,'','#'+t); }catch(e){}
+  store(TAB_KEY, t);
+  if(t==='list'){ closePlanDrawer(); onListTab(); }
+  if(t==='search'){ render(); renderRecent(); }
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav.tabs button').forEach(b => {
+  b.addEventListener('click', () => showTab(b.dataset.tab));
+  b.addEventListener('keydown', e => {
+    if(e.key!=='ArrowRight' && e.key!=='ArrowLeft') return;
+    const i = TABS.indexOf(b.dataset.tab), j = (i + (e.key==='ArrowRight'?1:-1) + TABS.length) % TABS.length;
+    showTab(TABS[j]); document.querySelector('nav.tabs [data-tab="'+TABS[j]+'"]').focus();
+  });
+});
+document.addEventListener('click', e => { const b=e.target.closest('[data-go]'); if(b) showTab(b.dataset.go); });
+function syncHdr(){ document.documentElement.style.setProperty('--hdr', document.querySelector('header.top').offsetHeight+'px'); }
+addEventListener('resize', syncHdr);
+/* The header button shows the download list in a side panel. The list's own element (#planBody) is
+   moved into the panel while it is open and back to the Download list tab afterwards, so there is one
+   copy of its controls and their handlers. */
+const planDrawerOpen = () => !$("planDrawer").hidden;
+function openPlanDrawer(){
+  closeSavedDrawer();
+  $("planDrawerBody").appendChild($("planBody"));
+  $("planDrawer").hidden = false; $("scrim").hidden = false; $("btnListCount").setAttribute("aria-expanded","true");
+  onListTab(); $("btnPlanClose").focus();
+}
+function closePlanDrawer(){
+  if(!planDrawerOpen()) return;
+  $("tab-list").appendChild($("planBody"));
+  $("planDrawer").hidden = true; $("scrim").hidden = true; $("btnListCount").setAttribute("aria-expanded","false");
+  if(currentTab==="list") renderPlan();
+}
+function onListTab(){
+  renderPlan();
+  for(const e of Object.values(S.plan)) if(e.rec.source==="ENCODE" && (!e.encState || e.encState==="err")) resolveEncode(e.rec.id);
+  resolvePlan();
+}
+
+/* ---------- modals ---------- */
+let lastFocus = null;
+function openModal(id, focusId){ lastFocus=document.activeElement; $(id).hidden=false; ($(focusId)||$(id).querySelector('button')).focus(); }
+function closeModal(id){ $(id).hidden=true; if(lastFocus) lastFocus.focus(); }
+['helpModal','resetModal'].forEach(id => $(id).addEventListener('click', e => { if(e.target===$(id)) closeModal(id); }));
+document.addEventListener('keydown', e => { if(e.key!=='Escape') return; ['helpModal','resetModal'].forEach(id => { if(!$(id).hidden) closeModal(id); }); });
+$('btnHelp').addEventListener('click', () => openModal('helpModal','btnHelpClose'));
+$('btnHelpClose').addEventListener('click', () => closeModal('helpModal'));
+$('btnReset').addEventListener('click', () => openModal('resetModal','btnResetCancel'));
+$('btnResetCancel').addEventListener('click', () => closeModal('resetModal'));
+$('btnResetConfirm').addEventListener('click', async () => {
+  closeModal('resetModal');
+  await idbDel(DOC.id);
+  DOC.fileName = ""; DOC.hasHandle = false;
+  applyWorkspace(blankWorkspace(), {rerun:false});
+  fileDirty = false; writeDoc(); showTab(TABS[0]); toast('Reset to a blank workspace');
+});
+
+/* ---------- downloads ---------- */
+let dlNs = null;
+function getDownloads(){ if(!dlNs) dlNs = (window.claude && window.claude.use) ? window.claude.use('downloads').catch(()=>null) : Promise.resolve(null); return dlNs; }
+async function offer(filename, data, mime){
+  const d = await getDownloads();
+  if(d){ try{ await d.save({filename, data}); toast('Saved '+filename); return 'saved'; }
+    catch(e){ if(e && e.code==='declined'){ toast('Save cancelled'); return 'declined'; } } }
+  const blob = data instanceof Blob ? data : new Blob([data], {type: mime||'application/octet-stream'});
+  const url = URL.createObjectURL(blob), a = document.createElement('a');
+  a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000); toast('Saved '+filename); return 'saved';
+}
+
+/* ---------- save as / open with a folder picker (house style §7.1) ---------- */
+const PICKER_ID = ABOUT.slug + '-workspace';
+const JSON_TYPES = [{description: ABOUT.app + ' workspace', accept: {'application/json': ['.json']}}];
+const TSV_TYPES = [{description: 'Tab-separated file list', accept: {'text/tab-separated-values': ['.tsv']}}];
+const canPick = () => typeof window.showSaveFilePicker === 'function' && window.self === window.top;
+async function writeHandle(h, data, mime){
+  const w = await h.createWritable();
+  await w.write(data instanceof Blob ? data : new Blob([data], {type: mime || 'application/octet-stream'}));
+  await w.close();
+}
+/* returns {result, handle} so a workspace can remember the file it was saved to */
+async function saveAsHandle(filename, data, mime, types){
+  if(canPick()){
+    try{
+      const h = await window.showSaveFilePicker({id: PICKER_ID, suggestedName: filename, types: types || JSON_TYPES});
+      await writeHandle(h, data, mime);
+      toast('Saved ' + h.name); return {result:'saved', handle:h, name:h.name};
+    }catch(e){
+      if(e && e.name === 'AbortError'){ toast('Save cancelled'); return {result:'declined'}; }
+      /* SecurityError or similar: fall through to a normal download */
+    }
+  }
+  const r = await offer(filename, data, mime); return {result:r, name:filename};
+}
+async function saveAs(filename, data, mime, types){ return (await saveAsHandle(filename, data, mime, types)).result; }
+async function openWithHandle(inputEl, types){
+  if(typeof window.showOpenFilePicker === 'function' && window.self === window.top){
+    try{ const [h] = await window.showOpenFilePicker({id: PICKER_ID, types: types || JSON_TYPES}); return {file: await h.getFile(), handle:h}; }
+    catch(e){ if(e && e.name === 'AbortError') return null; }
+  }
+  return new Promise(res => { inputEl.onchange = () => { const f = inputEl.files[0]; inputEl.value=''; res(f?{file:f, handle:null}:null); }; inputEl.click(); });
+}
+
+/* ---------- file handles live in IndexedDB (localStorage can't hold them) ---------- */
+let idbP = null;
+function idb(){
+  if(!idbP) idbP = new Promise((res, rej) => {
+    try{ const r = indexedDB.open(ABOUT.slug, 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('handles');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }catch(e){ rej(e); }
+  });
+  return idbP;
+}
+async function idbDo(mode, fn){ try{ const db = await idb(); return await new Promise((res, rej) => { const tx = db.transaction('handles', mode), st = tx.objectStore('handles'); const q = fn(st); tx.oncomplete = () => res(q && q.result); tx.onerror = () => rej(tx.error); }); }catch(e){ return null; } }
+const idbGet = k => idbDo('readonly', st => st.get(k));
+const idbSet = (k, v) => idbDo('readwrite', st => st.put(v, k));
+const idbDel = k => idbDo('readwrite', st => st.delete(k));
+const idbKeys = () => idbDo('readonly', st => st.getAllKeys());
+
+/* ---------- workspaces: one record per workspace, one tab owns it (multiple-instances note) ----------
+   Each workspace is stored under its own random id. The tab working on it holds a Web Lock named
+   dataseeker:<id>; the browser releases it when the tab closes or crashes. The tab's workspace id is
+   kept in sessionStorage so a reload returns to it; a duplicated tab copies sessionStorage, so the lock
+   is checked before trusting it. */
+const NS = ABOUT.slug, DOC_PREFIX = NS + '.doc.', SESSION_KEY = NS + '.tabdoc', PREFS_KEY = NS + '.prefs';
+const MAX_DOCS = 20, GRACE_MS = 24*3600*1000;
+const LOCKS = !!(navigator.locks && navigator.locks.request);
+let DOC = null, lockRelease = null, fileDirty = false, saveT = 0, quotaWarned = false, heldCache = new Set();
+const newId = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+const docKey = id => DOC_PREFIX + id;
+function prefs(){ return recall(PREFS_KEY) || {}; }
+function setPref(k, v){ const p = prefs(); p[k] = v; store(PREFS_KEY, p); }
+
+function acquire(id){
+  if(!LOCKS) return Promise.resolve(()=>{});
+  return new Promise(res => {
+    navigator.locks.request(NS + ':' + id, {ifAvailable:true}, lock => {
+      if(!lock){ res(null); return; }
+      return new Promise(release => res(release));   // held until release() or the tab goes away
+    }).catch(() => res(()=>{}));
+  });
+}
+async function heldIds(){
+  if(!LOCKS) return new Set();
+  try{ const q = await navigator.locks.query(); heldCache = new Set(q.held.map(l => l.name).filter(n => n.startsWith(NS + ':')).map(n => n.slice(NS.length + 1))); }
+  catch(e){}
+  return heldCache;
+}
+function listDocs(){
+  const out = [];
+  try{
+    for(let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.startsWith(DOC_PREFIX)){ const d = recall(k); if(d && d.meta && d.meta.id) out.push(d.meta); }
+    }
+  }catch(e){}
+  return out.sort((a,b) => (b.updated||0) - (a.updated||0));
+}
+const readDoc = id => recall(docKey(id));
+
+function blankWorkspace(){
+  return { app:ABOUT.app, kind:'workspace', version:ABOUT.version, saved:'',
+    project:{title:'', author:'', date:'', notes:''}, source:null,
+    settings:{ query:{q:'MyoD', assay:'chip', org:'', extra:'', sources:{geo:true, encode:true, ae:true}, expand:true, maxn:'300'},
+      groupBy:'tier', sortBy:'score', filters:{}, yearMin:null, yearMax:null, within:'', planTypes:{...DEFAULT_TYPES} },
+    state:{ aliases:[], aliasOn:[], lastRun:null, saved:{}, plan:{} } };
+}
+function readForm(){
+  return { q:$('q').value.trim(), assay:$('assay').value, org:$('org').value, extra:$('extra').value.trim(),
+    sources:{geo:$('srcGEO').checked, encode:$('srcENCODE').checked, ae:$('srcAE').checked}, expand:$('expand').checked, maxn:$('maxn').value };
+}
+function writeForm(f){
+  f = Object.assign(blankWorkspace().settings.query, f||{});
+  $('q').value = f.q||''; $('assay').value = f.assay||'chip'; $('org').value = f.org||''; $('extra').value = f.extra||'';
+  $('srcGEO').checked = f.sources.geo!==false; $('srcENCODE').checked = f.sources.encode!==false; $('srcAE').checked = f.sources.ae!==false;
+  $('expand').checked = f.expand!==false; $('maxn').value = String(f.maxn||'300');
+}
+function snapshot(){
+  return { app:ABOUT.app, kind:'workspace', version:ABOUT.version, saved:new Date().toISOString(),
+    project:{...S.project}, source:null,
+    settings:{ query:readForm(), groupBy:S.groupBy, sortBy:S.sortBy,
+      filters:Object.fromEntries(Object.entries(S.sel).map(([k,v]) => [k,[...v]])),
+      yearMin:S.yearMin, yearMax:S.yearMax, within:S.within, planTypes:{...S.planTypes} },
+    state:{ aliases:S.aliases, aliasOn:[...S.aliasOn], lastRun:S.lastRun, saved:S.saved, plan:S.plan } };
+}
+const workspaceJSON = () => JSON.stringify(snapshot(), null, 1);
+function docTitle(){
+  if(S.project.title) return S.project.title;
+  const lr = S.lastRun; if(lr && lr.q) return `${lr.q} · ${ASSAY_LABEL[lr.assay]||lr.assay}${lr.org?' · '+lr.org:''}`;
+  return 'Untitled workspace';
+}
+function applyWorkspace(obj, {rerun} = {rerun:true}){
+  const f = blankWorkspace();
+  const set = Object.assign(f.settings, obj.settings||{}), st = Object.assign(f.state, obj.state||{});
+  S.project = Object.assign(f.project, obj.project||{});
+  S.groupBy = set.groupBy||'tier'; S.sortBy = set.sortBy||'score';
+  S.sel = Object.fromEntries(Object.entries(set.filters||{}).map(([k,v]) => [k, new Set(v)]));
+  S.yearMin = set.yearMin||null; S.yearMax = set.yearMax||null; S.within = set.within||'';
+  S.planTypes = Object.assign({...DEFAULT_TYPES}, set.planTypes||{});
+  S.aliases = st.aliases||[]; S.aliasOn = new Set(st.aliasOn||[]); S.lastRun = st.lastRun||null;
+  S.saved = st.saved||{}; S.plan = st.plan||{};
+  // drop half-finished lookups and lookups in an older shape; they run again when needed
+  for(const e of Object.values(S.plan)){
+    e.pick = e.pick||{}; e.geo = e.geo||{}; e.raw = e.raw||{};
+    for(const k of ['geo','raw']) for(const a of Object.keys(e[k])) if(!['ok','folder','none','err'].includes(e[k][a] && e[k][a].state)) delete e[k][a];
+    if(e.encState==='loading') e.encState = null;
+  }
+  upgradeSaved();
+  S.records = []; S.query = null; S.runId++;
+  for(const k in SRC) SRC[k].state = null;
+  renderStatus(); $('goBtn').disabled = false; $('goBtn').textContent = 'Search';
+  writeForm(set.query); syncProjectForm();
+  $('groupBy').value = S.groupBy; $('sortBy').value = S.sortBy; $('within').value = S.within;
+  renderAliases(); $('portals').hidden = true; updateCounts(); renderSrcChip();
+  S.showSaved = false; setView(false); if(currentTab==='list') onListTab();
+  if(rerun && S.lastRun && S.lastRun.q){
+    writeForm(Object.assign(readForm(), {q:S.lastRun.q, assay:S.lastRun.assay, org:S.lastRun.org||'', extra:S.lastRun.extra||''}));
+    if(S.aliases.length) runSearch(true, true); else runSearch(false, true);
+  }
+}
+function writeDoc(){
+  if(!DOC) return true;
+  clearTimeout(saveT); saveT = 0;
+  const meta = {id:DOC.id, created:DOC.created, updated:Date.now(), title:docTitle(), fileName:DOC.fileName||'', hasHandle:!!DOC.hasHandle};
+  const rec = {meta, ws:snapshot()};
+  let ok = store(docKey(DOC.id), rec);
+  if(!ok){ pruneDocs(true); ok = store(docKey(DOC.id), rec); }
+  if(!ok && !quotaWarned){ quotaWarned = true; toast("This browser's storage is full. Use Save workspace to keep a copy."); }
+  return ok;
+}
+function autosave(){
+  fileDirty = true; renderSrcChip(); renderWsFile();
+  clearTimeout(saveT); saveT = setTimeout(writeDoc, 700);
+}
+/* Keep the 20 most recent workspaces. Never delete one another tab holds, or one changed in the last day. */
+function pruneDocs(urgent){
+  const docs = listDocs(), now = Date.now();
+  docs.slice(MAX_DOCS).forEach(m => {
+    if(DOC && m.id===DOC.id) return;
+    if(heldCache.has(m.id)) return;
+    if(!urgent && now - (m.updated||0) < GRACE_MS) return;
+    try{ localStorage.removeItem(docKey(m.id)); }catch(e){}
+  });
+}
+async function cleanHandles(){
+  const keys = await idbKeys(); if(!keys) return;
+  const now = Date.now();
+  for(const k of keys){
+    if(readDoc(k)) continue;
+    const v = await idbGet(k);
+    if(v && now - (v.at||0) > GRACE_MS) await idbDel(k);
+  }
+}
+const hasCurated = () => Object.keys(S.saved).length || Object.keys(S.plan).length || S.project.title || S.project.notes;
+
+/* switch this tab to workspace `id`, holding its lock. `ws` is applied when given, else read from storage. */
+async function openDoc(id, {ws, fileName='', hasHandle=false, rerun=true, created} = {}){
+  const release = await acquire(id);
+  if(!release) return false;
+  if(DOC){ writeDoc(); if(lockRelease) lockRelease(); }
+  lockRelease = release;
+  const rec = ws ? null : readDoc(id);
+  DOC = {id, created: created || (rec && rec.meta.created) || Date.now(),
+    fileName: ws ? fileName : ((rec && rec.meta.fileName) || ''), hasHandle: ws ? hasHandle : !!(rec && rec.meta.hasHandle)};
+  try{ sessionStorage.setItem(SESSION_KEY, id); }catch(e){}
+  applyWorkspace(ws || (rec && rec.ws) || blankWorkspace(), {rerun});
+  fileDirty = false; writeDoc(); renderWsFile(); renderRecent();
+  return true;
+}
+async function newWorkspace(){
+  const ws = blankWorkspace();
+  ws.settings.query = readForm();   // keep the query settings; everything else starts empty
+  ws.settings.query.q = '';
+  await openDoc(newId(), {ws, rerun:false});
+  showTab('search'); $('q').focus(); toast('New workspace. The previous one is under Workspaces in this browser.');
+}
+async function openRecent(id){
+  if(DOC && id===DOC.id) return;
+  if(!await openDoc(id)) toast('That workspace is open in another tab. Use Open a copy instead.');
+  else toast('Opened ' + (readDoc(id)?.meta.title || 'workspace'));
+}
+async function openCopy(id){
+  const rec = readDoc(id); if(!rec) return;
+  const ws = JSON.parse(JSON.stringify(rec.ws));
+  ws.project = Object.assign({}, ws.project, {title: (rec.meta.title || 'Workspace') + ' (copy)'});
+  await openDoc(newId(), {ws});
+  toast('Opened a copy of ' + rec.meta.title);
+}
+async function renderRecent(){
+  const el = $('recentList'); if(!el) return;
+  const held = await heldIds(), docs = listDocs().slice(0, MAX_DOCS);
+  const fmt = t => { const d = new Date(t||0); return d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}) + ' ' + d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}); };
+  el.innerHTML = docs.map(m => {
+    const cur = DOC && m.id===DOC.id, other = !cur && held.has(m.id);
+    const ns = (readDoc(m.id)?.ws?.state) || {}, nSaved = Object.keys(ns.saved||{}).length, nList = Object.keys(ns.plan||{}).length;
+    return `<li class="${cur?'current':''}"><div><div class="rname">${esc(m.title||'Untitled workspace')}</div>
+      <div class="rmeta">${fmt(m.updated)} · ${nSaved} saved · ${nList} on download list${m.fileName?' · '+esc(m.fileName):''}</div></div>
+      <div class="row" style="gap:6px">${cur?'<span class="hint">This tab</span>'
+        : other?'<span class="hint">Open in another tab</span><button class="btn small" type="button" data-copyws="'+esc(m.id)+'">Open a copy</button>'
+        : '<button class="btn small" type="button" data-openws="'+esc(m.id)+'">Open</button>'}</div></li>`;
+  }).join('') || '<li><span class="hint">No workspaces yet.</span></li>';
+}
+function renderWsFile(){
+  if(!DOC) return;
+  $('wsFile').textContent = DOC.fileName ? (fileDirty && hasCurated() ? `${DOC.fileName} · changes not yet saved to the file` : `Saved to ${DOC.fileName}`) : '';
+}
+function renderSrcChip(){
+  const lr = S.lastRun, t = lr && lr.q ? `${lr.q} · ${ASSAY_LABEL[lr.assay]||lr.assay}` : '';
+  $('srcChip').textContent = t; $('srcChip').title = t;
+}
+
+/* Migrate saves from versions before 2.0, which kept one shared copy for every tab. */
+function migrateOld(){
+  const raw = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
+  const parse = k => { try{ return JSON.parse(raw(k)||'null'); }catch(e){ return null; } };
+  const saved = parse('ds.saved'), plan = parse('ds.plan2') || parse('ds.plan'), types = parse('ds.planTypes'), key = raw('ds.apikey');
+  if(key && !prefs().ncbiKey) setPref('ncbiKey', key);
+  const has = o => o && typeof o==='object' && Object.keys(o).length;
+  let ok = true;
+  if(has(saved) || has(plan)){
+    const ws = blankWorkspace(), id = newId(), now = Date.now();
+    ws.project.title = 'Earlier work (before version 2)';
+    ws.state.saved = has(saved) ? saved : {}; ws.state.plan = has(plan) ? plan : {};
+    if(types) ws.settings.planTypes = Object.assign({...DEFAULT_TYPES}, types);
+    ok = store(docKey(id), {meta:{id, created:now, updated:now, title:ws.project.title, fileName:''}, ws});
+  }
+  if(ok) ['ds.saved','ds.plan','ds.plan2','ds.planTypes','ds.apikey','ds.theme','ds.ai','ds.goal','ds.akey','ds.aimodel'].forEach(k => { try{ localStorage.removeItem(k); }catch(e){} });
+}
+
+/* ---------- save / load workspace ---------- */
+async function ensurePerm(h){
+  try{ if(await h.queryPermission({mode:'readwrite'})==='granted') return true; return (await h.requestPermission({mode:'readwrite'}))==='granted'; }
+  catch(e){ return false; }
+}
+function wsBase(){ return slug(S.project.title || (S.lastRun && S.lastRun.q) || ABOUT.slug); }
+async function saveWorkspace(asNew){
+  const data = workspaceJSON();
+  /* Save writes back to the file this workspace came from (Chrome and Edge); Save as picks a new one. */
+  if(!asNew && DOC.hasHandle){
+    const v = await idbGet(DOC.id);
+    if(v && v.handle && await ensurePerm(v.handle)){
+      try{ await writeHandle(v.handle, data, 'application/json'); afterSave(v.handle.name); toast('Saved ' + v.handle.name); return; }catch(e){}
+    }
+  }
+  const r = await saveAsHandle(wsBase() + '_workspace.json', data, 'application/json');
+  if(r.result!=='saved') return;
+  if(r.handle){ await idbSet(DOC.id, {handle:r.handle, at:Date.now()}); DOC.hasHandle = true; }
+  afterSave(r.name);
+}
+function afterSave(name){ DOC.fileName = name; fileDirty = false; writeDoc(); renderWsFile(); renderRecent(); }
+async function loadWorkspaceFile(file, handle){
+  let obj;
+  try{ obj = JSON.parse(await file.text()); }catch(e){ toast("That file isn't a " + ABOUT.app + " workspace"); return; }
+  if(!obj || obj.app!==ABOUT.app){ toast("That file isn't a " + ABOUT.app + " workspace"); return; }
+  /* Open never throws work away: the file opens as a new workspace and the current one stays under Recent. */
+  const id = newId();
+  await openDoc(id, {ws:obj, fileName:file.name, hasHandle:!!handle});
+  if(handle) await idbSet(id, {handle, at:Date.now()});
+  showTab('search');
+  toast('Opened ' + file.name);
+}
+$('btnSaveWs').addEventListener('click', () => saveWorkspace(false));
+$('btnSaveAsWs').addEventListener('click', () => saveWorkspace(true));
+$('btnLoadWs').addEventListener('click', async () => { const r = await openWithHandle($('fileWs')); if(r) loadWorkspaceFile(r.file, r.handle); });
+$('btnNewWs').addEventListener('click', newWorkspace);
+$('recentList').addEventListener('click', e => {
+  const o = e.target.closest('[data-openws]'); if(o) openRecent(o.dataset.openws);
+  const c = e.target.closest('[data-copyws]'); if(c) openCopy(c.dataset.copyws);
+});
+let dragDepth = 0;
+addEventListener('dragenter', e => { if(e.dataTransfer && [...(e.dataTransfer.types||[])].includes('Files')){ dragDepth++; $('dropOverlay').hidden=false; e.preventDefault(); } });
+addEventListener('dragover', e => e.preventDefault());
+addEventListener('dragleave', () => { dragDepth=Math.max(0,dragDepth-1); if(!dragDepth) $('dropOverlay').hidden=true; });
+addEventListener('drop', e => { e.preventDefault(); dragDepth=0; $('dropOverlay').hidden=true; const f=e.dataTransfer && e.dataTransfer.files[0];
+  if(f){ if(/\.json$/i.test(f.name)) loadWorkspaceFile(f, null); else toast('Drop a ' + ABOUT.app + ' workspace (.json) to open it'); } });
+/* write promptly and flush on exit */
+addEventListener('pagehide', () => writeDoc());
+document.addEventListener('visibilitychange', () => { if(document.visibilityState==='hidden') writeDoc(); });
+addEventListener('beforeunload', e => { writeDoc(); if(fileDirty && hasCurated()){ e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- project ---------- */
+const PJ = ['title','author','notes'];
+PJ.forEach(k => $('pj_'+k).addEventListener('input', e => { S.project[k] = e.target.value; autosave(); }));
+function syncProjectForm(){ PJ.forEach(k => { $('pj_'+k).value = S.project[k]||''; }); }
+
+/* ---------- provenance ---------- */
+function readme(){
+  const L = [], p = S.project, lr = S.lastRun, now = new Date().toISOString().replace('T',' ').slice(0,19);
+  L.push(p.title || ABOUT.app + ' export', '');
+  L.push('Generated : ' + now + ' with ' + ABOUT.app + ' ' + ABOUT.version);
+  if(p.author) L.push('Author    : ' + p.author);
+  L.push('Workspace : ' + DOC.id + (DOC.fileName ? ' (' + DOC.fileName + ')' : ''));
+  if(p.notes) L.push('', 'Notes', p.notes);
+  L.push('', 'Search');
+  if(lr){
+    L.push('  Term        : ' + lr.q, '  Searched as : ' + (lr.terms||[]).join(', '), '  Data type   : ' + (ASSAY_LABEL[lr.assay]||lr.assay),
+      '  Species     : ' + (lr.org||'any'), '  Keywords    : ' + (lr.extra||'none'), '  Run at      : ' + lr.at);
+    for(const [src, st] of Object.entries(lr.sources||{})) L.push('  ' + (src+'            ').slice(0,12) + ': ' + st);
+    if(lr.geoTerm) L.push('  GEO query   : ' + lr.geoTerm);
+  } else L.push('  No search run in this workspace.');
+  const f = Object.entries(S.sel).filter(([,v]) => v.size);
+  L.push('', 'Filters on Results: ' + (f.length ? f.map(([k,v]) => k + ' = ' + [...v].join(' | ')).join('; ') : 'none')
+    + (S.yearMin||S.yearMax ? '; years ' + (S.yearMin||'…') + '–' + (S.yearMax||'…') : '') + (S.within ? '; text "' + S.within + '"' : ''));
+  L.push('', 'Saved datasets (' + Object.keys(S.saved).length + ')');
+  Object.values(S.saved).forEach(r => L.push('  ' + r.accession + '  Tier ' + r.tier + ' (' + r.score + ')  ' + r.title));
+  const rows = planRows();
+  L.push('', 'Download list: ' + Object.keys(S.plan).length + ' datasets, ' + rows.length + ' rows; file types: ' + Object.keys(S.planTypes).filter(k => S.planTypes[k]).join(', '));
+  Object.values(S.plan).forEach(e => L.push('  ' + e.rec.accession + '  ' + (e.rec.source==='GEO' ? Object.entries(e.pick).map(([a,r]) => a + ' (' + r + ')').join(', ') : e.rec.source)));
+  L.push('', 'Method',
+    'Public sequencing datasets were identified with ' + ABOUT.app + ' v' + ABOUT.version + ' (' + ABOUT.citeName + ', ' + ABOUT.year + '), which searches NCBI GEO, the ENCODE portal and EBI ArrayExpress'
+    + (lr && (lr.terms||[]).length > 1 ? ', expanding the search term to its NCBI Gene aliases (' + lr.terms.join(', ') + ')' : '')
+    + '. Datasets were ranked with a rule-based reliability score (0–100) built from linked publications, replicate and control samples, deposited raw and processed data, how much of each study concerns the target, and design complexity; the score breakdown for every dataset is listed in the app. File locations were taken from each sample\'s GEO record, NCBI SRA run tables, ENA and the ENCODE file list.');
+  return L.join('\n') + '\n';
+}
+
+/* ---------- about ---------- */
+function renderAbout(){
+  document.querySelectorAll('.app-name').forEach(el => el.textContent = ABOUT.app);
+  const rows = [['Name',esc(ABOUT.author)],['Affiliation',esc(ABOUT.affiliation)],['Group',esc(ABOUT.group)],
+    ['Email', '<span style="display:grid;gap:4px">' + ABOUT.emails.map(m => '<span class="row" style="gap:8px"><span class="mono">'+esc(m)+'</span><button class="btn small" type="button" data-email="'+esc(m)+'" aria-label="Copy '+esc(m)+'">Copy</button></span>').join('') + '</span>'],
+    ['Version','<span class="mono">'+esc(ABOUT.version+' · '+ABOUT.date)+'</span>'],['Built with','Claude (Anthropic)']];
+  $('aboutAuthor').innerHTML = rows.map(r => '<dt>'+r[0]+'</dt><dd>'+r[1]+'</dd>').join('');
+  $('aboutCite').textContent = ABOUT.citeName+' '+ABOUT.app+' v'+ABOUT.version+' [software]. RNA Medicine Group, '+ABOUT.affiliation+'; '+ABOUT.year+'.';
+  $('aboutAuthor').addEventListener('click', e => {
+    const b = e.target.closest('[data-email]'); if(!b) return;
+    if(navigator.clipboard) navigator.clipboard.writeText(b.dataset.email).then(()=>toast('Email copied'), ()=>toast('Select the address and copy it'));
+    else toast('Select the address and copy it');
+  });
+}
+
+/* ---------- events ---------- */
+function wire(){
+  $("searchForm").addEventListener("submit", e=>{ e.preventDefault(); runSearch(false); });
+  ["q","assay","org","extra","srcGEO","srcENCODE","srcAE","expand","maxn"].forEach(id => $(id).addEventListener("change", autosave));
+  $("apikey").addEventListener("change", e=>setPref("ncbiKey", e.target.value.trim()));
+  $("aliasRow").addEventListener("click", e=>{
+    const a = e.target.closest("[data-alias]");
+    if(a){ const v=a.dataset.alias; S.aliasOn.has(v)?S.aliasOn.delete(v):S.aliasOn.add(v); if(!S.aliasOn.size) S.aliasOn.add(v); renderAliases(); autosave(); return; }
+    if(e.target.id==="rerun"){ runSearch(true); }
+  });
+  $("rail").addEventListener("change", e=>{
+    const t = e.target;
+    if(t.dataset.facet){ const k=t.dataset.facet; S.sel[k]=S.sel[k]||new Set(); t.checked?S.sel[k].add(t.dataset.val):S.sel[k].delete(t.dataset.val); render(); autosave(); }
+    if(t.id==="yMin"||t.id==="yMax"){ S.yearMin=+$("yMin").value||null; S.yearMax=+$("yMax").value||null; render(); autosave(); }
+  });
+  $("rail").addEventListener("click", e=>{
+    const c = e.target.closest("[data-clear]"); if(c){ delete S.sel[c.dataset.clear]; render(); autosave(); }
+    const m = e.target.closest("[data-more]"); if(m){ const k=m.dataset.more; openFacets.has(k)?openFacets.delete(k):openFacets.add(k); render(); }
+  });
+  const onCardClick = async e=>{
+    const ow = e.target.closest("[data-openws]"); if(ow){ await openRecent(ow.dataset.openws); if(savedDrawerOpen()) renderSaved(); return; }
+    const pb = e.target.closest("[data-plan]");
+    if(pb){ const id = pb.dataset.plan;
+      if(S.plan[id]){ planRemove(id); toast("Removed from the download list"); }
+      else { const r = S.records.find(x=>x.id===id) || S.saved[id]; if(r) planAdd(r); }
+      refreshPlanButtons(); return; }
+    const c = e.target.closest("[data-copy]");
+    if(c){ try{ await navigator.clipboard.writeText(c.dataset.copy); toast("Sample IDs copied"); }catch(err){ toast("Copy blocked by the browser"); } return; }
+    const s = e.target.closest("[data-star]"); if(!s) return;
+    const id = s.dataset.star;
+    if(S.saved[id]){ delete S.saved[id]; toast("Removed from saved"); }
+    else { const r = S.records.find(x=>x.id===id); if(r){ S.saved[id] = {...r, savedTerms:S.query?.terms||[], savedQuery:S.query?.q||"", savedAt:new Date().toISOString().slice(0,10)}; toast("Saved"); } }
+    autosave(); render(); if(savedDrawerOpen()) renderSaved();
+  };
+  $("groups").addEventListener("click", onCardClick);
+  $("savedList").addEventListener("click", onCardClick);
+  $("btnSavedClose").addEventListener("click", ()=>{ closeSavedDrawer(); $("btnSavedHdr").focus(); });
+  $("savedToPlan").addEventListener("click", ()=>{ let n=0; Object.values(S.saved).forEach(r=>{ if(planAdd(r,true)) n++; }); refreshPlanButtons(); autosave(); toast(n?`Added ${n} saved dataset${n===1?"":"s"} to the download list`:"All saved datasets are already on the download list"); });
+  $("savedCopy").addEventListener("click", async ()=>{ const t=Object.values(S.saved).map(r=>r.accession).join("\n"); if(!t) return toast("Nothing saved yet");
+    try{ await navigator.clipboard.writeText(t); toast("Accessions copied"); }catch(e){ toast("Copy blocked by the browser"); } });
+  $("savedCsv").addEventListener("click", ()=>{ const r=Object.values(S.saved); if(!r.length) return toast("Nothing saved yet"); offer(`${wsBase()}_saved.csv`, toCSV(r), "text/csv"); });
+  $("btnListCount").addEventListener("click", ()=>{ planDrawerOpen() ? closePlanDrawer() : openPlanDrawer(); });
+  $("btnPlanClose").addEventListener("click", ()=>{ closePlanDrawer(); $("btnListCount").focus(); });
+  $("btnPlanFull").addEventListener("click", ()=>{ closePlanDrawer(); showTab("list"); });
+  $("scrim").addEventListener("click", ()=>{ closeSavedDrawer(); closePlanDrawer(); });
+  document.addEventListener("keydown", e=>{
+    if(e.key!=="Escape" || !$("helpModal").hidden || !$("resetModal").hidden) return;
+    if(planDrawerOpen()){ closePlanDrawer(); $("btnListCount").focus(); }
+    if(savedDrawerOpen()){ closeSavedDrawer(); $("btnSavedHdr").focus(); }
+  });
+  $("btnSavedHdr").addEventListener("click", ()=>{ savedDrawerOpen() ? closeSavedDrawer() : openSavedDrawer(); });
+  let tmr; $("within").addEventListener("input", e=>{ clearTimeout(tmr); tmr=setTimeout(()=>{ S.within=e.target.value.trim(); render(); autosave(); },150); });
+  $("filtersBtn").addEventListener("click", ()=>document.body.classList.toggle("show-filters"));
+  $("groupBy").addEventListener("change", e=>{ S.groupBy=e.target.value; render(); autosave(); });
+  $("sortBy").addEventListener("change", e=>{ S.sortBy=e.target.value; render(); autosave(); });
+  $("csvBtn").addEventListener("click", ()=>{ const r=filtered(); if(!r.length) return toast("Nothing to export");
+    offer(`${wsBase()}_results.csv`, toCSV(r), "text/csv"); });
+  $("copyBtn").addEventListener("click", async ()=>{ const txt=filtered().map(r=>r.accession).join("\n");
+    try{ await navigator.clipboard.writeText(txt); toast("Accessions copied"); }catch(e){ toast("Copy blocked by the browser"); } });
+  wirePlan();
+}
+
+/* ---------- boot ---------- */
+(async function boot(){
+  wire(); renderAbout(); syncHdr();
+  migrateOld();
+  const k = prefs().ncbiKey; if(k) $('apikey').value = k;
+  await heldIds();
+  let opened = false;
+  /* a reload keeps this tab's workspace; a duplicated tab finds it locked and gets its own copy */
+  let sid = null; try{ sid = sessionStorage.getItem(SESSION_KEY); }catch(e){}
+  if(sid && readDoc(sid)){
+    opened = await openDoc(sid);
+    if(!opened){ await openCopy(sid); opened = true; toast('That workspace is open in another tab, so this tab has its own copy.'); }
+  }
+  /* a fresh tab picks up the most recent workspace if no other tab has it */
+  if(!opened){ const recent = listDocs()[0]; if(recent && !heldCache.has(recent.id)) opened = await openDoc(recent.id); }
+  if(!opened){ const ws = blankWorkspace(); await openDoc(newId(), {ws, rerun:false}); }
+  pruneDocs(false); cleanHandles();
+  const h = (location.hash||'').slice(1);
+  showTab(TABS.includes(h) ? h : (recall(TAB_KEY) || TABS[0]));
+})();
+</script>
+</body>
+</html>
